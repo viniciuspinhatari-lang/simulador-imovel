@@ -1,21 +1,12 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="index,follow">
-<meta property="og:title" content="Simulador de Financiamento Imobiliário — V2P">
-<meta property="og:description" content="Entrada, prazo, taxa, renda, Selic, portabilidade e consórcio — parcela nominal e em dinheiro de hoje.">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Simulador Imóvel</title>
 <meta name="description" content="Entrada, prazo, taxa, renda e portabilidade — simule seu financiamento com valor nominal e em dinheiro de hoje">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-</head>
-<body>
 <style>
 :root{--ground:#F7F4F1;--surface:#FFFFFF;--surface2:#EFE9E3;--ink:#15211D;--muted:#5B6B64;--line:#E2D9D2;--line2:#CBBEB4;
---verde:#14634A;--verde-soft:#DFEDE6;--accent:#B5522A;--accent-ink:#D97757;--accent-soft:#FAE7DD;--amber:#946012;--amber-soft:#F6EAD6;--loss:#A1352F;--loss-soft:#F7E2DF;color-scheme:light dark}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#12100E;--surface:#1B1815;--surface2:#241F1B;--ink:#EDE6E0;--muted:#A2968C;--line:#312A25;--line2:#453C34;--verde:#4FB392;--verde-soft:#102C23;--accent:#E08A66;--accent-soft:#332016;--amber:#D6A45C;--amber-soft:#2F2412;--loss:#E28B84;--loss-soft:#331A18}}
-:root[data-theme="dark"]{--ground:#12100E;--surface:#1B1815;--surface2:#241F1B;--ink:#EDE6E0;--muted:#A2968C;--line:#312A25;--line2:#453C34;--verde:#4FB392;--verde-soft:#102C23;--accent:#E08A66;--accent-soft:#332016;--amber:#D6A45C;--amber-soft:#2F2412;--loss:#E28B84;--loss-soft:#331A18}
+--verde:#14634A;--verde-soft:#DFEDE6;--accent:#B5522A;--c1:#B5522A;--c2:#2563A8;--accent-ink:#D97757;--accent-soft:#FAE7DD;--amber:#946012;--amber-soft:#F6EAD6;--loss:#A1352F;--loss-soft:#F7E2DF;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#12100E;--surface:#1B1815;--surface2:#241F1B;--ink:#EDE6E0;--muted:#A2968C;--line:#312A25;--line2:#453C34;--verde:#4FB392;--verde-soft:#102C23;--accent:#E08A66;--c1:#CC6A42;--c2:#4E8FD0;--accent-soft:#332016;--amber:#D6A45C;--amber-soft:#2F2412;--loss:#E28B84;--loss-soft:#331A18}}
+:root[data-theme="dark"]{--ground:#12100E;--surface:#1B1815;--surface2:#241F1B;--ink:#EDE6E0;--muted:#A2968C;--line:#312A25;--line2:#453C34;--verde:#4FB392;--verde-soft:#102C23;--accent:#E08A66;--c1:#CC6A42;--c2:#4E8FD0;--accent-soft:#332016;--amber:#D6A45C;--amber-soft:#2F2412;--loss:#E28B84;--loss-soft:#331A18}
 *{box-sizing:border-box}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif;font-size:15.5px;line-height:1.55}
 .idbar{display:flex;height:5px}.idbar i{flex:1}.idbar i:first-child{background:var(--verde)}.idbar i:last-child{background:var(--accent-ink)}
@@ -69,6 +60,85 @@ details.sec>.sc{padding:0 16px 14px;border-top:1px solid var(--line);padding-top
 .tabs button.on{background:var(--verde);border-color:var(--verde);color:#fff}
 .comp{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:0 0 12px}
 .comp .card{margin:0}
+.aoVivo{display:flex;gap:11px;align-items:flex-start;background:color-mix(in srgb,var(--accent) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:10px;padding:12px 14px;margin:0 0 18px;font-size:13.5px;line-height:1.55}
+.aoVivo .pulso{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:5px;animation:bat 2.4s ease-in-out infinite}
+@keyframes bat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.78)}}
+@media(prefers-reduced-motion:reduce){.aoVivo .pulso{animation:none}}
+.flash{animation:fl .5s ease-out}
+@keyframes fl{from{background:color-mix(in srgb,var(--accent) 15%,transparent)}to{background:transparent}}
+.moeda{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:8px;background:var(--surface);overflow:hidden;transition:border-color .12s,box-shadow .12s}
+.moeda:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent)}
+.moeda>span{display:flex;align-items:center;padding:0 9px;background:var(--surface2);color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:12.5px;border-right:1px solid var(--line)}
+.moeda.pct>span{border-right:0;border-left:1px solid var(--line)}
+.grid select,.grid input:not(.moeda>input){min-height:42px}
+.moeda{min-height:42px}
+.moeda>input{border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent;flex:1;min-width:0;text-align:right;font-family:"IBM Plex Mono",monospace;font-size:15px;padding:9px 10px}
+.moeda>input:focus{outline:none}
+.grid>div{display:flex;flex-direction:column}
+.grid>div>label{flex:1 0 auto;display:flex;align-items:flex-end;margin-bottom:5px}
+.grid label{display:block}
+tr.bad{background:color-mix(in srgb,var(--loss) 9%,transparent)}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px 10px;margin:0 0 12px}
+.fig h4{margin:0 0 2px;font-size:15px;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:700}
+.fig .sub{margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.5}
+.fig svg{display:block;width:100%;height:auto;overflow:visible}
+.leg{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+.maisLink{display:inline;background:none;border:0;padding:0 0 0 4px;margin:0;font:inherit;font-size:.93em;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.maisLink:hover{opacity:.75}
+.resto{display:none}
+.resto.on{display:inline}
+.secD{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;overflow:hidden}
+.secD>summary{cursor:pointer;list-style:none;padding:14px 16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.secD>summary::-webkit-details-marker{display:none}
+.secD>summary::before{content:'＋';font-family:"IBM Plex Mono",monospace;color:var(--accent);font-size:15px;line-height:1}
+.secD[open]>summary::before{content:'－'}
+.secD>summary h2{margin:0;font-size:17px;border:0;padding:0}
+.secD>summary .tl{flex:1 1 320px;min-width:0;font-size:13.5px;color:var(--muted);line-height:1.5}
+.secD>summary:hover{background:var(--surface2)}
+.secD[open]>summary{border-bottom:1px solid var(--line);background:var(--surface2)}
+.secD .sd{padding:14px 16px 4px}
+.secD .sd>h2:first-child{display:none}
+.modo{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin:0 0 12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.modo button{font-size:12.5px;padding:6px 11px}
+details.ler{border:1px solid var(--line);border-radius:8px;background:var(--surface2);margin:12px 0 0;font-size:13.5px}
+details.ler>summary{cursor:pointer;padding:8px 12px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.04em}
+details.ler[open]>summary{border-bottom:1px solid var(--line);color:var(--ink)}
+details.ler .lc{padding:10px 14px 13px;line-height:1.6}
+details.ler ul{margin:0;padding-left:18px}
+details.ler li{margin:4px 0}
+.lerGraf{margin:12px 0 0;padding:11px 13px;background:var(--surface2);border-radius:8px;font-size:13.5px;line-height:1.6}
+.lerGraf>b:first-child{display:block;margin-bottom:5px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace;color:var(--muted)}
+.lerGraf ul{margin:0;padding-left:18px}
+.lerGraf li{margin:3px 0}
+.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;box-shadow:0 6px 20px rgba(0,0,0,.12);line-height:1.5;display:none;max-width:240px}
+.tip b{font-family:"IBM Plex Mono",monospace}
+.plano{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}
+@media(max-width:720px){.plano{grid-template-columns:1fr}}
+.plano .card{margin:0}
+.plano .strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+.plano .card.sug{border-color:var(--c2);border-width:1.5px}
+.plano .card h3{display:flex;align-items:center;gap:8px}
+.plano .card h3 i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.linha{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.linha:last-child{border-bottom:0}
+.linha span{color:var(--muted)}
+.linha b{font-family:"IBM Plex Mono",monospace}
+#indice{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 22px}
+#indice h3{margin:0 0 8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-weight:600}
+#indice ol{margin:0;padding-left:20px;columns:2;column-gap:28px;line-height:1.85}
+#indice a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+#indice a:hover{border-bottom-color:var(--accent);color:var(--accent)}
+@media(max-width:640px){#indice ol{columns:1}}
+details.gloss{border:1px solid var(--line);border-radius:8px;background:var(--surface);margin:-2px 0 12px;font-size:13.5px}
+details.gloss>summary{cursor:pointer;padding:8px 12px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.04em}
+details.gloss[open]>summary{border-bottom:1px solid var(--line);color:var(--ink)}
+details.gloss .gc{padding:10px 14px 14px}
+details.gloss dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;align-items:baseline}
+details.gloss dt{font-weight:700;font-family:"IBM Plex Mono",monospace;font-size:12.5px;white-space:nowrap}
+details.gloss dd{margin:0;color:var(--muted);line-height:1.6}
+@media(max-width:640px){details.gloss dl{grid-template-columns:1fr;gap:2px} details.gloss dd{margin:0 0 8px}}
+h2[id]{scroll-margin-top:14px}
 .def{font-size:13.5px;color:var(--muted);background:var(--surface2);border-radius:6px;padding:7px 11px;margin:4px 0 10px}
 .def b{color:var(--ink)}
 footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
@@ -100,6 +170,9 @@ const DEF={
   selicRef:13.75, selicData:'2026-09-16 (Copom)',
   finA:6.6, finB:0.34, finDesc:{sbpe:0,caixa:-0.8,cotista:-2.2,coop:-1.0,consig:-2.0,digital:-1.5},
   tr:1.0,
+  longoReal:7.28, longoFonte:'Tesouro IPCA+ 2045, set/2026 (Status Invest)',
+  regras:{ ltvSac:80, ltvPrice:70, ltvMcmv:90, idadeMax:80.5, prazoMaxMeses:420,
+           tetoSfh:2250000, tetoMcmv:600000, itbi:3.0, cartorio:1.5, avaliacao:3100, desc1oImovel:50 },
   inv:{ cdbPct:100, lciPct:90, tesSpread:0.10, tesCust:0.20, ir:15, fiReal:7.5, debReal:8.0, outro:11.5 },
   cons:{ adm:20, fr:2, meses:200, lance:25 },
   consAdm:[['Rodobens','a partir de 9,5%','24–216','2026-06','idinheiro'],['Banco do Brasil','a partir de 17%','até 200','2026-06','idinheiro'],['Itaú','a partir de 17%','até 228','2026-06','idinheiro'],['Embracon','a partir de 20%','—','2026-06','idinheiro'],['Porto','~23%','até 200','2026-06','idinheiro'],['Caixa','sob consulta','até 200','2026-06','idinheiro']],
@@ -120,8 +193,8 @@ const DEF={
   ],
   perfis:{
    clt:{n:'CLT',fgts:true,cons:false,lim:30,docs:'holerite, carteira de trabalho, IR',obs:'Acesso ao FGTS com 3 anos de carteira (somados). Taxa pró-cotista disponível se cumprir os requisitos.'},
-   fed:{n:'Servidor federal (estatutário)',fgts:false,cons:true,lim:30,docs:'contracheque, IR',obs:'NÃO tem FGTS (é RPPS). Tem consignação em folha (SIAPE), que reduz risco do banco e a taxa. O banco pode permitir até 70% de comprometimento — a regra prudente continua sendo 30%.'},
-   est:{n:'Servidor estadual/municipal (estatutário)',fgts:false,cons:true,lim:30,docs:'contracheque, IR',obs:'Sem FGTS se estatutário. Consignação depende de convênio do seu ente com o banco — pergunte no RH. Servidor celetista (CLT público) tem FGTS.'},
+   fed:{n:'Servidor federal (estatutário)',fgts:false,cons:true,lim:30,docs:'contracheque, IR',obs:'NÃO tem FGTS (é RPPS). Tem consignação em folha (SIAPE): a parcela é descontada antes de você receber, o banco corre menos risco e cobra menos juros. <b>A margem consignável federal é de 45% do líquido</b> (Lei 14.509/2022: 35% empréstimo + 5% cartão consignado + 5% cartão benefício), e ela é <b>compartilhada com qualquer outro consignado que você já tenha</b>. Não confunda com o teto de 70%: esse número é o limite da soma de <b>todos</b> os descontos da folha (previdência, IR, pensão, consignados) — passou disso, nenhuma consignação nova entra. Nada disso é permissão para comprometer 45% ou 70% da renda com moradia: a regra prudente desta calculadora continua sendo 25% de conforto e 30% de teto.'},
+   est:{n:'Servidor estadual/municipal (estatutário)',fgts:false,cons:true,lim:30,docs:'contracheque, IR',obs:'Sem FGTS se estatutário. Consignação depende de convênio do seu ente com o banco — pergunte no RH, porque a margem e as regras variam por estado e município (a margem de 45% da Lei 14.509/2022 vale para o servidor <b>federal</b>, não automaticamente para os demais). Servidor celetista (CLT público) tem FGTS.'},
    aut:{n:'Autônomo / profissional liberal',fgts:false,cons:false,lim:30,docs:'IR, extratos, notas fiscais, contratos, DECORE',obs:'FGTS só se teve 3 anos de CLT no passado e não sacou. Banco costuma considerar média dos extratos e aplicar desconto sobre a renda declarada — leve 12 meses de extrato.'},
    cnpj:{n:'Empresário / CNPJ',fgts:false,cons:false,lim:30,docs:'IR PF e PJ, pró-labore, extrato PJ, contrato social',obs:'Sócio não tem FGTS. O banco olha o pró-labore e a distribuição de lucros declarada no IR — não o faturamento da empresa. Distribuição informal não conta.'}
   },
@@ -139,7 +212,7 @@ const DEF={
      ['Cordeiro',6757,8.1,'média-baixa','zona oeste (Caxangá) · sem shopping grande · sem praia']]},
    'Piracicaba':{var12:null,fonte:'não coberta pelo FipeZap; Campestre +8% (Frias Neto 2026); média R$ 7.720/m² é ABRAINC 2023',bairros:[
      ['Campestre',null,8.0],['Cidade Alta',null,null],['Alto',null,null],['Nova Piracicaba',null,null],['Paulista',null,null],['Higienópolis',null,null]]},
-   'Outra':{var12:null,fonte:'preencha com dado local',bairros:[]}
+   'Outra cidade (preencha)':{var12:null,fonte:'preencha com dado local',bairros:[]}
   }
 };
 let P=load();
@@ -149,7 +222,7 @@ function resetP(){ P=JSON.parse(JSON.stringify(DEF)); saveP(); render(); }
 
 /* ============ ESTADO DO USUÁRIO ============ */
 const S0={perfil:'clt',fgts:true,cidade:'Recife',valor:850000,caixa:500000,entrada:400000,fgtsEnt:0,
-  renda:12000,comp:[0,0],taxa:10.26,taxaPort:9.0,idade:39,prazos:[20,25,30],prazoRef:30,selic:13.75,invTipo:'lci'};
+  renda:12000,comp:[0,0],taxa:10.26,taxaPort:9.0,idade:39,prazos:[20,25,30],prazoRef:30,selic:13.75,invTipo:'lci',aporte:0,usarLongo:true,custosFin:false,sistema:'sac',primeiro:true,custosNoCaixa:true};
 let S=(function(){ try{const s=localStorage.getItem('v2p-imovel-estado'); if(s)return Object.assign({},S0,JSON.parse(s));}catch(e){} return Object.assign({},S0); })();
 function saveS(){ try{localStorage.setItem('v2p-imovel-estado',JSON.stringify(S));}catch(e){} }
 
@@ -157,15 +230,66 @@ function saveS(){ try{localStorage.setItem('v2p-imovel-estado',JSON.stringify(S)
 const fmt=v=>'R$ '+(Math.round(v*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fk=v=>'R$ '+Math.round(v/1000).toLocaleString('pt-BR')+' mil';
 const fp=(v,d=2)=>(+v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const nfMil=v=>(v===''||v==null||isNaN(v))?'':Math.round(v).toLocaleString('pt-BR');
+const parseMil=t=>{ const d=String(t==null?'':t).replace(/[^\d]/g,''); return d===''?0:+d; };
+/* campo de dinheiro: texto com separador de milhar, teclado numérico no celular */
+function campoR$(id,val,extra){ return '<div class="moeda"><span>R$</span><input id="'+id+'" type="text" inputmode="numeric" autocomplete="off" data-moeda="1" value="'+nfMil(val)+'"'+(extra||'')+'></div>'; }
+/* campo de porcentagem: aceita vírgula, mostra sufixo */
+function campoPct(id,val,step,extra){ return '<div class="moeda pct"><input id="'+id+'" type="text" inputmode="decimal" autocomplete="off" data-pct="1" data-step="'+(step||0.1)+'" value="'+String(val).replace('.',',')+'"'+(extra||'')+'><span>%</span></div>'; }
+const parsePct=t=>{ const v=String(t==null?'':t).replace(/\s|%/g,'').replace(',','.').replace(/[^\d.\-]/g,''); return v===''||isNaN(+v)?null:+v; };
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function mip(idade){ for(const [l,p] of P.mipFaixas){ if(idade<=l)return p/100; } return 0.00065; }
-function sac(pv,anos,taxa,idade0){
-  const n=anos*12, im=Math.pow(1+taxa/100,1/12)-1, am=pv/n; let s=pv,jur=0,seg=0; const ps=[];
-  for(let m=0;m<n;m++){ const id=idade0+Math.floor(m/12); const sg=s*(mip(id)+P.dfi/100);
-    ps.push(am+s*im+sg); jur+=s*im; seg+=sg; s-=am; }
-  return {ps,jur,seg,p1:ps[0],pn:ps[ps.length-1],tot:ps.reduce((a,b)=>a+b,0)};
+/* sistema: 'sac' (amortização constante, parcela cai) ou 'price' (parcela fixa
+   de juros+amortização; os seguros, que seguem o saldo, ainda variam por fora) */
+function sac(pv,anos,taxa,idade0,sist){
+  const n=anos*12, im=Math.pow(1+taxa/100,1/12)-1;
+  const price=(sist||S.sistema)==='price';
+  const pmt=price?(im>0?pv*im/(1-Math.pow(1+im,-n)):pv/n):0;
+  const am0=pv/n; let s=pv,jur=0,seg=0,amt=0; const ps=[],sal=[];
+  for(let m=0;m<n;m++){ const id=idade0+Math.floor(m/12); const j=s*im; const sg=s*(mip(id)+P.dfi/100);
+    const a=price?Math.min(s,pmt-j):am0;
+    ps.push(a+j+sg); sal.push(s); jur+=j; seg+=sg; amt+=a; s=Math.max(0,s-a); }
+  return {ps,sal,jur,seg,amt,sist:price?'price':'sac',p1:ps[0],pn:ps[ps.length-1],tot:ps.reduce((a,b)=>a+b,0)};
 }
 function hoje(v,anos){ return v/Math.pow(1+P.infl/100,anos); }
+function escalaY(y0,y1){ const amp=y1-y0;
+  if(amp>=2e6)return v=>'R$ '+(v/1e6).toFixed(1)+'M';
+  if(amp>=2e5)return v=>'R$ '+Math.round(v/1000).toLocaleString('pt-BR')+'k';
+  if(amp>=2e3)return v=>'R$ '+(v/1000).toFixed(1)+'k';
+  return v=>'R$ '+Math.round(v).toLocaleString('pt-BR'); }
+function svgLinha(cfg){
+  /* cfg: {series:[{nome,cor,pts:[[x,y]...]}], xlab, ylab, fx, fy, w,h} */
+  const W=cfg.w||760,H=cfg.h||260,ml=64,mr=18,mt=cfg.ylab?26:12,mb=34;
+  const xs=cfg.series.flatMap(s=>s.pts.map(p=>p[0])), ys=cfg.series.flatMap(s=>s.pts.map(p=>p[1]));
+  const x0=Math.min(...xs),x1=Math.max(...xs); let y0=Math.min(...ys),y1=Math.max(...ys);
+  const pad=(y1-y0)*0.12||Math.abs(y1||1)*0.1; const todosPos=ys.every(v=>v>=0);
+  y0=todosPos?Math.max(0,y0-pad):y0-pad; y1+=pad;
+  const X=v=>ml+(v-x0)/((x1-x0)||1)*(W-ml-mr), Y=v=>H-mb-(v-y0)/((y1-y0)||1)*(H-mt-mb);
+  const ticksY=[0,.25,.5,.75,1].map(t=>y0+t*(y1-y0)); const fyA=cfg.fy||escalaY(y0,y1);
+  const nx=Math.min(6,cfg.series[0].pts.length); const ticksX=[];
+  for(let i=0;i<nx;i++)ticksX.push(x0+i*(x1-x0)/((nx-1)||1));
+  let g='<g>'+ticksY.map(t=>'<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+Y(t).toFixed(1)+'" y2="'+Y(t).toFixed(1)+'" stroke="var(--line)" stroke-width="1"/>'
+    +'<text x="'+(ml-8)+'" y="'+(Y(t)+4).toFixed(1)+'" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono,monospace">'+fyA(t)+'</text>').join('')
+    +ticksX.map(t=>'<text x="'+X(t).toFixed(1)+'" y="'+(H-12)+'" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono,monospace">'+cfg.fx(t)+'</text>').join('')+'</g>';
+  g+=cfg.series.map((s,si)=>'<polyline fill="none" stroke="'+s.cor+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="'
+    +s.pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')+'"/>').join('');
+  /* marcadores destacados */
+  g+=(cfg.marcas||[]).map(m=>'<g><circle cx="'+X(m.x).toFixed(1)+'" cy="'+Y(m.y).toFixed(1)+'" r="6.5" fill="'+m.cor+'" stroke="var(--surface)" stroke-width="2"/>'
+    +'<text x="'+X(m.x).toFixed(1)+'" y="'+(Y(m.y)-13).toFixed(1)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ink)" font-family="IBM Plex Mono,monospace">'+esc(m.rot)+'</text></g>').join('');
+  /* camada de hover */
+  const pts=cfg.series[0].pts;
+  g+='<g class="hv">'+pts.map((p,i)=>{const dados=cfg.series.map(s=>s.nome+': '+cfg.fyTip(s.pts[i]?s.pts[i][1]:null)).join('<br>');
+     return '<rect x="'+(X(p[0])-((W-ml-mr)/pts.length/2)).toFixed(1)+'" y="'+mt+'" width="'+((W-ml-mr)/pts.length).toFixed(1)+'" height="'+(H-mt-mb)+'" fill="transparent" data-tip="'+esc('<b>'+cfg.fxTip(p[0])+'</b><br>'+dados).replace(/"/g,'&quot;')+'"/>';}).join('')+'</g>';
+  if(cfg.ylab)g='<text x="0" y="14" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono,monospace">'+esc(cfg.ylab)+'</text>'+g;
+  if(cfg.xlab)g+='<text x="'+(W-mr)+'" y="'+(H-0)+'" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono,monospace">'+esc(cfg.xlab)+'</text>';
+  return '<svg viewBox="0 0 '+W+' '+(H+(cfg.xlab?8:0))+'" role="img">'+g+'</svg>';
+}
+function figura(titulo,sub,svg,legenda,tabela,comoLer){ return '<div class="fig"><h4>'+esc(titulo)+'</h4><p class="sub">'+sub+'</p>'+svg
+  +(legenda?'<div class="leg">'+legenda.map(l=>'<span><i style="background:'+l[1]+'"></i>'+esc(l[0])+'</span>').join('')+'</div>':'')
+  +(comoLer?'<details class="ler"><summary>▸ Como ler este gráfico</summary><div class="lc">'+comoLer+'</div></details>':'')
+  +(tabela?'<details class="gloss" style="margin-top:10px"><summary>▸ Ver os números desta curva</summary><div class="gc">'+tabela+'</div></details>':'')+'</div>'; }
+function gloss(pares,titulo){ return '<details class="gloss"><summary>▸ '+esc(titulo||'O que significa cada coluna desta tabela')+'</summary><div class="gc"><dl>'
+  +pares.map(([t,d])=>'<dt>'+esc(t)+'</dt><dd>'+d+'</dd>').join('')+'</dl></div></details>'; }
 function invTipos(selic){ const cdi=Math.max(0,selic-0.10), I=P.inv, ir=I.ir/100, real=r=>((1+P.infl/100)*(1+r/100)-1)*100;
   const poup=selic>8.5?6.17+P.tr:selic*0.7+P.tr;
   return [
@@ -177,6 +301,24 @@ function invTipos(selic){ const cdi=Math.max(0,selic-0.10), I=P.inv, ir=I.ir/100
    {k:'deb',n:'Debênture incentivada (IPCA + '+fp(I.debReal,1)+'%)',bruta:real(I.debReal),liq:real(I.debReal),ir:'isento',regra:'mesma conta do FI-Infra, um emissor só',risco:'crédito de uma empresa; pode dar calote'},
    {k:'outro',n:'Outro (você define)',bruta:I.outro,liq:I.outro,ir:'—',regra:'taxa líquida que você quiser testar',risco:'—'}
   ].map(t=>{ t.naoSegue=t.k==='fi'||t.k==='deb'||t.k==='outro'; return t; }); }
+function segueSelic(k){ return ['poup','tes','cdb','lci'].includes(k||S.invTipo); }
+/* taxa REAL usada nas projeções longas: ou a de longo prazo (contratável hoje
+   num IPCA+ longo), ou a de hoje projetada para sempre — escolha do usuário. */
+function realProj(){ return S.usarLongo?P.longoReal:((1+P.invest/100)/(1+P.infl/100)-1)*100; }
+function nomProj(){ return ((1+realProj()/100)*(1+P.infl/100)-1)*100; }
+function taxaReal(){ return realProj(); }
+function rendaMes(v){ return v*taxaReal()/100/12; }
+function ltvMax(){ return S.sistema==='price'?P.regras.ltvPrice:P.regras.ltvSac; }
+function entradaMinima(valor){ return valor*(1-ltvMax()/100); }
+function prazoMaximo(idade){ return Math.max(1,Math.min(P.regras.prazoMaxMeses/12,Math.floor(P.regras.idadeMax-idade))); }
+function custosAquisicao(valor,primeiro){ const r=P.regras;
+  const itbi=valor*r.itbi/100, cart=valor*r.cartorio/100*(primeiro?(1-r.desc1oImovel/100):1);
+  return {itbi,cart,aval:r.avaliacao,total:itbi+cart+r.avaliacao}; }
+function PRZ_OPC(){ return [20,25,30,35].filter(a=>a<=prazoMaximo(S.idade)); }
+function HORIZ_TXT(){ return '35 anos'; }
+function C1x(){ return 'var(--c1)'; }
+function C2x(){ return 'var(--c2)'; }
+function cidV(c){ return P.cidades[c]?P.cidades[c].var12:null; }
 function taxaEsperada(selic,cat){ return P.finA+P.finB*selic+(P.finDesc[cat]||0); }
 function mediaCat(cat){ const l=P.bancos.filter(b=>b[5]===cat); return l.length?l.reduce((a,b)=>a+b[1],0)/l.length:null; }
 function consorcio(credito,adm,fr,meses,lance){
@@ -186,45 +328,138 @@ function consorcio(credito,adm,fr,meses,lance){
 function patrim(valor,caixa,entrada,anos,taxa,idade,ref){
   const r=sac(valor-entrada,anos,taxa,idade); let c=caixa-entrada; const imv=Math.pow(1+P.invest/100,1/12)-1;
   r.ps.forEach(p=>{ c=c*(1+imv)+Math.max(0,ref-p); }); return c+valor; }
+function simular(entrada,anos,orc,hor){
+  /* paga a parcela do financiamento e investe o que sobra do orçamento mensal;
+     a sobra do caixa entra investida no mês zero. Imóvel acompanha a inflação,
+     então em R$ de hoje ele vale sempre o preço de compra. */
+  const r=sac(S.valor-entrada+(S.custosFin?custosAquisicao(S.valor,S.primeiro).total:0),anos,S.taxa,S.idade); const im=Math.pow(1+nomProj()/100,1/12)-1;
+  const H=(hor||anos)*12; let c=Math.max(0,S.caixa-entrada); const serie=[];
+  for(let i=0;i<H;i++){ const p=i<r.ps.length?r.ps[i]:0; c=c*(1+im)+(orc-p);
+    if(i%12===11)serie.push({ano:(i+1)/12,cart:c,cartH:hoje(c,(i+1)/12)}); }
+  const T=H/12, aporte1=orc-r.p1, aporteN=orc-r.pn;
+  return {entrada,anos,hor:T,p1:r.p1,pn:r.pn,jur:r.jur,seg:r.seg,cart:c,cartH:hoje(c,T),
+    patrim:c+S.valor*Math.pow(1+P.infl/100,T),patrimH:hoje(c,T)+S.valor,
+    aporte1,aporteN,serie,negativo:aporte1<0}; }
 function port(pv,anos,taxa,nova,mesIni){
   const n=anos*12, am=pv/n, sd=pv-am*mesIni, rest=n-mesIni;
   const jr=t=>{const im=Math.pow(1+t/100,1/12)-1; let s=sd,tot=0; for(let k=0;k<rest;k++){tot+=s*im; s-=am;} return tot;};
   return {sd,j0:jr(taxa),j1:jr(nova)}; }
 
 /* ============ RENDER ============ */
-function render(){
+function render(modo){
+  const SO_RES = modo==='parcial';
   const perfil=P.perfis[S.perfil]||P.perfis.clt;
   const rendaTot=(+S.renda||0)+(S.comp||[]).reduce((a,b)=>a+(+b||0),0);
   const fgtsOk=perfil.fgts&&S.fgts;
   const entradaTot=(+S.entrada||0)+(fgtsOk?(+S.fgtsEnt||0):0);
-  const fin=S.valor-entradaTot; const sobra=S.caixa-S.entrada;
-  const ok=fin>0&&sobra>=0&&rendaTot>0;
+  const custosPrev=custosAquisicao(S.valor,S.primeiro).total;
+  const custosAVista=S.custosFin?0:custosPrev;
+  const fin=S.valor-entradaTot+(S.custosFin?custosPrev:0);
+  const sobra=Math.max(0,S.caixa-S.entrada-custosAVista);
+  const probs=[];
+  if(!(rendaTot>0))probs.push('A <b>renda</b> está zerada — preencha a seção 2.');
+  if(!(S.valor>0))probs.push('O <b>valor do imóvel</b> está zerado.');
+  if(entradaTot>=S.valor)probs.push('A <b>entrada</b> ('+fk(entradaTot)+') é maior ou igual ao valor do imóvel ('+fk(S.valor)+') — não sobra nada para financiar. Reduza a entrada ou aumente o valor do imóvel.');
+  if(S.entrada>S.caixa)probs.push('A <b>entrada em dinheiro</b> ('+fk(S.entrada)+') é maior do que você tem guardado ('+fk(S.caixa)+'). Aumente o campo "você tem guardado" ou reduza a entrada.');
+  const ok=probs.length===0;
   let html='';
   /* --- 1. perfil --- */
-  html+='<h2>1. Quem é você</h2><div class="card"><div class="grid">'
+  html+='<div class="aoVivo"><span class="pulso"></span><div><b>Tudo nesta página recalcula sozinho.</b> Mudou um campo, mudaram na hora as 13 seções abaixo: parcelas, checagem das regras, recomendação, gráficos, portabilidade e consórcio. <b>Não existe "salvar"</b> — o que você digita fica guardado neste navegador e volta quando você abrir de novo. O botão <i>Calcular</i> serve só para rolar até o resultado.</div></div>'
+   +'<h2>1. Quem é você</h2><div class="card"><div class="grid">'
    +'<div><label>Vínculo</label><select id="perfil">'+Object.keys(P.perfis).map(k=>'<option value="'+k+'"'+(k===S.perfil?' selected':'')+'>'+esc(P.perfis[k].n)+'</option>').join('')+'</select></div>'
    +'<div><label>Tem FGTS (3 anos de carteira)?</label><select id="fgts"'+(perfil.fgts?'':' disabled')+'><option value="1"'+(S.fgts?' selected':'')+'>sim</option><option value="0"'+(!S.fgts?' selected':'')+'>não</option></select></div>'
-   +'<div><label>Sua idade</label><input id="idade" type="number" value="'+S.idade+'"></div>'
+   +'<div><label>Sua idade</label><input id="idade" type="number" inputmode="numeric" min="18" max="79" value="'+S.idade+'"></div>'
    +'<div><label>Cidade</label><select id="cidade">'+Object.keys(P.cidades).map(c=>'<option'+(c===S.cidade?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></div>'
    +'</div>'
    +'<div class="note '+(perfil.cons?'go':perfil.fgts?'lj':'warn')+'" style="margin:12px 0 0"><b>'+esc(perfil.n)+'.</b> '+esc(perfil.obs)+'<br><span class="meta">documentos: '+esc(perfil.docs)+' · FGTS: '+(perfil.fgts?'sim':'não')+' · consignação: '+(perfil.cons?'sim':'não')+'</span></div></div>';
   /* --- 2. renda --- */
   html+='<h2>2. Renda — sua e de quem compõe</h2><div class="card"><div class="grid">'
-   +'<div><label>Sua renda líquida mensal</label><input id="renda" type="number" step="100" value="'+S.renda+'"></div>'
-   +'<div><label>Compõe renda 1 (cônjuge, pai, irmão)</label><input id="comp0" type="number" step="100" value="'+(S.comp[0]||0)+'"></div>'
-   +'<div><label>Compõe renda 2</label><input id="comp1" type="number" step="100" value="'+(S.comp[1]||0)+'"></div>'
-   +'<div><label>Renda total considerada</label><input value="'+fmt(rendaTot)+'" disabled></div></div>'
+   +'<div><label>Sua renda líquida mensal</label>'+campoR$('renda',S.renda)+'</div>'
+   +'<div><label>Compõe renda 1 (cônjuge, pai, irmão)</label>'+campoR$('comp0',S.comp[0]||0)+'</div>'
+   +'<div><label>Compõe renda 2</label>'+campoR$('comp1',S.comp[1]||0)+'</div>'
+   +'<div><label>Renda total considerada</label><input id="rendaTotal" class="calc" value="'+fmt(rendaTot)+'" disabled></div></div>'
    +'<div class="def" style="margin-top:10px"><b>Composição de renda</b> — cônjuge, companheiro, pais, filhos e irmãos podem somar renda para o mesmo financiamento. Todos entram no contrato e na dívida. O banco aprova quando a parcela cabe em cerca de <b>30% da renda somada</b>. <b>A regra prudente desta calculadora é 25% para conforto e 30% como teto</b> — independente de o banco permitir mais.</div></div>';
   /* --- 3. imóvel e entrada --- */
   html+='<h2>3. Imóvel, entrada e o que sobra</h2><div class="card"><div class="grid">'
-   +'<div><label>Valor do imóvel</label><input id="valor" type="number" step="10000" value="'+S.valor+'"></div>'
-   +'<div><label>Você tem guardado</label><input id="caixa" type="number" step="10000" value="'+S.caixa+'"></div>'
-   +'<div><label>Entrada em dinheiro</label><input id="entrada" type="number" step="10000" value="'+S.entrada+'"></div>'
-   +'<div><label>FGTS usado na entrada</label><input id="fgtsEnt" type="number" step="5000" value="'+S.fgtsEnt+'"'+(fgtsOk?'':' disabled')+'></div>'
-   +'<div><label>Taxa do financiamento (% a.a.)</label><input id="taxa" type="number" step="0.01" value="'+S.taxa+'"></div>'
-   +'<div><label>Taxa p/ testar portabilidade</label><input id="taxaPort" type="number" step="0.1" value="'+S.taxaPort+'"></div>'
-   +'<div><label>Selic do momento (% a.a.)</label><input id="selic" type="number" step="0.25" value="'+S.selic+'"><span class="meta">padrão '+fp(P.selicRef,2)+'% em '+esc(P.selicData)+'</span></div>'
+   +'<div><label>Valor do imóvel</label>'+campoR$('valor',S.valor)+'</div>'
+   +'<div><label>Você tem guardado</label>'+campoR$('caixa',S.caixa)+'</div>'
+   +'<div><label>Entrada em dinheiro</label>'+campoR$('entrada',S.entrada)+'</div>'
+   +'<div><label>FGTS usado na entrada</label>'+campoR$('fgtsEnt',S.fgtsEnt,(fgtsOk?'':' disabled'))+'</div>'
+   +'<div><label>Taxa do financiamento (% a.a.)</label>'+campoPct('taxa',S.taxa,0.01)+'</div>'
+   +'<div><label>Taxa p/ testar portabilidade</label>'+campoPct('taxaPort',S.taxaPort,0.1)+'</div>'
+   +'<div><label>Sistema de amortização</label><select id="sistema"><option value="sac"'+(S.sistema==='sac'?' selected':'')+'>SAC — parcela cai (financia até '+fp(P.regras.ltvSac,0)+'%)</option><option value="price"'+(S.sistema==='price'?' selected':'')+'>Price — parcela fixa (financia até '+fp(P.regras.ltvPrice,0)+'%)</option></select></div>'
+   +'<div><label>Custos da escritura (ITBI, cartório)</label><select id="custosFin"><option value="0"'+(!S.custosFin?' selected':'')+'>pago à vista, do meu bolso</option><option value="1"'+(S.custosFin?' selected':'')+'>financiar junto com o imóvel</option></select></div>'
+   +'<div><label>É o seu primeiro imóvel?</label><select id="primeiro"><option value="1"'+(S.primeiro?' selected':'')+'>sim — 50% de desconto no cartório</option><option value="0"'+(!S.primeiro?' selected':'')+'>não</option></select></div>'
+   +'<div><label>Investir por mês, além da parcela</label>'+campoR$('aporte',S.aporte)+'<span class="meta">deixe zerado e eu escolho pelo seu limite de renda</span></div>'
+   +'<div><label>Selic do momento (% a.a.)</label>'+campoPct('selic',S.selic,0.25)+'<span class="meta">padrão '+fp(P.selicRef,2)+'% em '+esc(P.selicData)+'</span></div>'
    +'</div><div style="margin-top:10px"><button onclick="calc()">Calcular</button> <button class="ghost" onclick="limpar()">limpar</button> <span class="meta">atualiza sozinho enquanto você digita · tudo fica salvo neste navegador</span></div></div>';
+  const FORM=html; html='';
+  /* --- 3b. CHECAGEM DAS REGRAS --- */
+  const RG=P.regras, entMin=entradaMinima(S.valor), prazoMax=prazoMaximo(S.idade), CST=custosAquisicao(S.valor,S.primeiro);
+  const ltv=(S.valor-entradaTot)/S.valor*100;
+  const chk=[];
+  chk.push({ok:entradaTot>=entMin-1, t:'Entrada mínima',
+    d:'Pelo '+(S.sistema==='price'?'Price':'SAC')+' o banco financia no máximo <b>'+fp(ltvMax(),0)+'%</b> do imóvel, então a entrada tem de ser de pelo menos <b>'+fk(entMin)+'</b> ('+fp(100-ltvMax(),0)+'%). Você está dando '+fk(entradaTot)+' — financiando '+fp(ltv,1)+'%.',
+    fix:'Faltam <b>'+fk(Math.max(0,entMin-entradaTot))+'</b>. Aumente a entrada, use FGTS, ou troque para o SAC (financia '+fp(RG.ltvSac,0)+'%, contra '+fp(RG.ltvPrice,0)+'% do Price).'});
+  chk.push({ok:S.idade+S.prazoRef<=RG.idadeMax, t:'Idade + prazo',
+    d:'A soma da sua idade com o prazo não pode passar de <b>'+fp(RG.idadeMax,1)+' anos</b> (80 anos e 6 meses). Com '+S.idade+' anos, o seu prazo máximo é <b>'+prazoMax+' anos</b>.',
+    fix:'O prazo de '+S.prazoRef+' anos não é permitido para a sua idade. Use no máximo '+prazoMax+' anos.'});
+  chk.push({ok:S.valor<=RG.tetoSfh, t:'Teto do SFH',
+    d:'Até <b>'+fk(RG.tetoSfh)+'</b> o imóvel entra no SFH: juros limitados por lei, FGTS liberado. Acima disso vira SFI, com taxa livre e sem FGTS.',
+    fix:'Um imóvel de '+fk(S.valor)+' passa do teto: as taxas desta página (SBPE) não se aplicam, e o FGTS não pode ser usado.'});
+  if(fgtsOk||S.fgtsEnt>0)chk.push({ok:perfil.fgts&&S.valor<=RG.tetoSfh, t:'Uso do FGTS',
+    d:'Exige 3 anos de carteira somados (não precisa ser seguido nem recente), imóvel dentro do teto do SFH, e <b>não ter imóvel residencial no município onde você mora ou trabalha</b> — nem na mesma região metropolitana.',
+    fix:perfil.fgts?'O imóvel passa do teto do SFH: FGTS não pode ser usado nele.':'O seu vínculo ('+perfil.n+') não acumula FGTS.'});
+  chk.push({ok:S.custosFin||S.caixa-S.entrada-CST.total>=0, t:'Dinheiro para os custos da compra',
+    d:'Além da entrada, a escritura tem custo: <b>ITBI '+fp(RG.itbi,1)+'%</b> ('+fk(CST.itbi)+') + <b>cartório '+fp(RG.cartorio,1)+'%</b>'+(S.primeiro?' com 50% de desconto de primeiro imóvel':'')+' ('+fk(CST.cart)+') + avaliação do banco ('+fmt(CST.aval)+') = <b>'+fk(CST.total)+'</b>.'
+      +(S.custosFin?' <b>Você escolheu financiar esses custos</b>, então eles entram na dívida em vez de sair do bolso — a parcela sobe e você paga juros sobre eles pelo contrato inteiro.':' Saem do seu bolso, à vista, no ato.'),
+    fix:'Com '+fk(S.caixa)+' guardado e '+fk(S.entrada)+' de entrada, sobram '+fk(S.caixa-S.entrada)+' — menos que os '+fk(CST.total)+' de custos. Reduza a entrada, junte mais, ou escolha <b>financiar os custos</b> no campo da seção 3 (custa juros, mas destrava a compra).'});
+  const falhas=chk.filter(c=>!c.ok);
+  html+='<h2>4. Checagem — o que o banco vai exigir antes de dizer sim</h2>'
+   +'<p>Regras que não são opinião: ou o seu caso passa, ou o banco recusa. Tudo abaixo é recalculado com os seus números e os limites são editáveis nos parâmetros.</p>'
+   +'<div class="scroll"><table><thead><tr><th>regra</th><th>o que é</th><th class="mono">situação</th></tr></thead><tbody>'
+   +chk.map(c=>'<tr'+(c.ok?'':' class="bad"')+'><td><b>'+esc(c.t)+'</b></td><td>'+c.d+(c.ok?'':'<br><span class="neg"><b>→ '+c.fix+'</b></span>')+'</td>'
+     +'<td class="mono">'+(c.ok?'<span class="chip ok">passa</span>':'<span class="chip no">trava</span>')+'</td></tr>').join('')
+   +'</tbody></table></div>'
+   +(falhas.length?'<div class="note stop"><b>'+falhas.length+' '+(falhas.length>1?'travas':'trava')+' no caminho.</b> A calculadora continua mostrando as contas abaixo, mas com '+(falhas.length>1?'essas regras':'essa regra')+' como está, <b>o banco não aprova</b>. Resolva primeiro o que está marcado.</div>'
+     :'<div class="note go"><b>Passa em todas as regras.</b> Entrada acima do mínimo, prazo compatível com a idade, imóvel dentro do teto e dinheiro suficiente para os custos da escritura.</div>')
+   +'<div class="strip"><div class="tile"><small>entrada mínima ('+fp(100-ltvMax(),0)+'%)</small><b>'+fk(entMin)+'</b><span class="h">pelo '+(S.sistema==='price'?'Price':'SAC')+'</span></div>'
+   +'<div class="tile"><small>custos da escritura</small><b>'+fk(CST.total)+'</b><span class="h">ITBI + cartório + avaliação</span></div>'
+   +'<div class="tile"><small>prazo máximo</small><b>'+prazoMax+' anos</b><span class="h">'+S.idade+' + prazo ≤ '+fp(RG.idadeMax,1)+'</span></div>'
+   +'<div class="tile"><small>precisa ter, no total</small><b>'+fk(entMin+CST.total)+'</b><span class="h">entrada mínima + custos</span></div></div>'
+   +gloss([['LTV / cota de financiamento','A fatia do imóvel que o banco empresta. O resto é a sua entrada. SAC vai até '+fp(RG.ltvSac,0)+'%, Price até '+fp(RG.ltvPrice,0)+'%, Minha Casa Minha Vida até '+fp(RG.ltvMcmv,0)+'% conforme a faixa.'],
+     ['ITBI','Imposto de transmissão, pago à prefeitura para o imóvel mudar de dono. Gira em torno de 2% a 3% conforme o município — confira o do seu.'],
+     ['Cartório','Escritura e registro. Quem compra o primeiro imóvel pelo SFH tem 50% de desconto no registro.'],
+     ['Avaliação','O banco manda um engenheiro avaliar o imóvel e cobra por isso. Se ele avaliar abaixo do preço pedido, o financiamento cai junto — e a sua entrada precisa subir.'],
+     ['SFH × SFI','SFH é o sistema com juros limitados e FGTS liberado, para imóveis até '+fk(RG.tetoSfh)+'. Acima disso é SFI: taxa livre, sem FGTS.'],
+     ['Idade + prazo','Regra dos bancos: a soma não passa de 80 anos e 6 meses, porque o seguro de morte e invalidez tem de cobrir o contrato inteiro.']],'O que significa cada regra')
+   +'<h3 style="margin-top:14px">Até que idade dá para financiar — e por quanto tempo</h3>'
+   +'<p>A conta é uma só: <b>'+fp(RG.idadeMax,1)+' − sua idade = prazo máximo</b>, limitado a '+(RG.prazoMaxMeses/12)+' anos (o teto do sistema). Por isso o prazo de 35 anos só existe até os '+Math.floor(RG.idadeMax-RG.prazoMaxMeses/12)+' anos; a partir daí ele encolhe um ano a cada aniversário.</p>'
+   +'<div class="scroll"><table><thead><tr><th class="mono">idade na contratação</th><th class="mono">prazo máximo</th><th class="mono">em meses</th><th class="mono">idade ao quitar</th><th>o que muda</th></tr></thead><tbody>'
+   +[25,30,35,40,45,50,55,60,65,70,75].map(a=>{const pm=prazoMaximo(a); const perto=[25,30,35,40,45,50,55,60,65,70,75].reduce((x,y)=>Math.abs(y-S.idade)<Math.abs(x-S.idade)?y:x)===a;
+     return '<tr'+(perto?' class="hl"':'')+'><td class="mono"><b>'+a+' anos</b>'+(perto?' <span class="chip">você</span>':'')+'</td>'
+      +'<td class="mono">'+pm+' anos</td><td class="mono">'+(pm*12)+' meses</td><td class="mono">'+(a+pm)+'</td>'
+      +'<td><small>'+(pm>=35?'prazo cheio disponível':pm>=25?'já perde prazo — parcela sobe':pm>=15?'prazo curto, parcela pesada':'financiamento vira quase à vista')+'</small></td></tr>';}).join('')
+   +'</tbody></table></div>'
+   +'<div class="note lj"><b>Por que a regra existe.</b> Não é preconceito com idade: o banco exige o seguro de morte e invalidez (MIP) cobrindo o contrato inteiro, e a seguradora não cobre indefinidamente. Aos '+S.idade+' anos você contrata por até <b>'+prazoMax+' anos</b> e quita aos '+(S.idade+prazoMax)+'. Caixa, Itaú, Santander, Bradesco, BB, BRB e Inter aplicam o mesmo limite de 80 anos e 6 meses.</div>'
+   +(function(){ const fin0=Math.min(fin,800000)||800000;
+     const linha=id=>{ const pm=prazoMaximo(id), pr=Math.min(pm,30), r=sac(fin0,pr,S.taxa,id);
+       const mipMes=fin0*mip(id); return {id,pr,p1:r.p1,mipMes,seg:r.seg}; };
+     const A=[30,40,50,60,70].filter(id=>prazoMaximo(id)>=5).map(linha);
+     return '<h3 style="margin-top:14px">O custo de esperar — o seguro explode com a idade</h3>'
+      +'<p>Mesmo financiamento de <b>'+fk(fin0)+'</b> à mesma taxa de '+fp(S.taxa,2)+'%, mudando só a idade de quem assina. O prazo encolhe pela regra acima e o seguro encarece por faixa etária: as duas coisas empurram a parcela para cima ao mesmo tempo.</p>'
+      +'<div class="scroll"><table><thead><tr><th class="mono">idade</th><th class="mono">prazo usado</th><th class="mono">MIP no 1º mês</th><th class="mono">1ª parcela (SAC)</th><th class="mono">seguros no total</th><th class="mono">vs 30 anos</th></tr></thead><tbody>'
+      +A.map(x=>'<tr'+(Math.abs(x.id-S.idade)<=5?' class="hl"':'')+'><td class="mono"><b>'+x.id+' anos</b></td><td class="mono">'+x.pr+' anos</td>'
+        +'<td class="mono">'+fmt(x.mipMes)+'</td><td class="mono"><b>'+fmt(x.p1)+'</b></td><td class="mono">'+fk(x.seg)+'</td>'
+        +'<td class="mono '+(x.p1>A[0].p1?'neg':'')+'">'+(x.id===A[0].id?'—':'+'+fp((x.p1/A[0].p1-1)*100,1)+'%')+'</td></tr>').join('')
+      +'</tbody></table></div>'
+      +gloss([['prazo usado','O maior prazo que aquela idade permite (limitado a 30 anos aqui, para a comparação ficar limpa).'],
+        ['MIP no 1º mês','O seguro de morte e invalidez sobre o saldo devedor inicial. A taxa muda por faixa: '+P.mipFaixas.map(f=>fp(f[1],4)+'% até '+(f[0]>100?'∞':f[0]+'a')).join(' · ')+'.'],
+        ['1ª parcela','Amortização + juros + seguros. É onde as duas penalidades da idade aparecem somadas.'],
+        ['seguros no total','Tudo o que sai de MIP e DFI ao longo do contrato.'],
+        ['vs 30 anos','Quanto a primeira parcela fica mais cara do que seria para alguém de 30 anos no mesmo financiamento.']],'O que significa cada coluna')
+      +'<div class="note warn"><b>A leitura prática.</b> Entre 30 e 60 anos, a mesma dívida fica sensivelmente mais cara — não por juros, mas por prazo menor e seguro maior. <b>Se a compra vai acontecer de qualquer forma nos próximos anos, adiar tem preço</b>, e ele aparece aqui. O contrário também vale: comprar cedo demais, sem entrada e sem reserva, tem preço maior ainda. Os números desta tabela são calculados com as faixas de MIP dos parâmetros, não copiados de anúncio.</div>'; })()
+   +'<div class="note warn"><b>O erro mais comum.</b> Juntar exatamente a entrada e descobrir no cartório que faltam '+fk(CST.total)+'. Esses custos são à vista, não entram no financiamento, e ninguém os menciona no anúncio. <b>Some sempre entrada + custos antes de dizer que tem o dinheiro.</b></div>';
   /* --- 3b. onde a sobra rende --- */
   const TIP=invTipos(S.selic);
   html+='<h2>3b. Onde a sobra rende — escolha o investimento</h2>'
@@ -232,23 +467,56 @@ function render(){
    +'<div class="scroll"><table><thead><tr><th>investimento</th><th class="mono">bruta a.a.</th><th>IR</th><th class="mono">líquida a.a.</th><th>como é calculado</th><th>risco</th><th></th></tr></thead><tbody>'
    +TIP.map(t=>'<tr'+(t.k===S.invTipo?' class="hl"':'')+'><td><b>'+esc(t.n)+'</b>'+(t.k===S.invTipo?' <span class="chip ok">em uso</span>':'')+'</td><td class="mono">'+fp(t.bruta,2)+'%</td><td><small>'+esc(t.ir)+'</small></td><td class="mono '+(t.liq>=S.taxa?'pos':'neg')+'"><b>'+fp(t.liq,2)+'%</b></td><td><small>'+esc(t.regra)+(t.naoSegue?' · <b>não segue a Selic</b>':'')+'</small></td><td><small>'+esc(t.risco)+'</small></td><td><button class="ghost sm" onclick="usarInv(\''+t.k+'\')">usar</button></td></tr>').join('')
    +'</tbody></table></div>'
+   +gloss([['investimento','O nome do produto. Poupança, Tesouro, CDB e LCI são renda fixa que acompanha os juros do país. FI-Infra e debênture pagam inflação + uma taxa fixa por cima.'],
+     ['bruta a.a.','Quanto rende em um ano <b>antes</b> de descontar imposto e taxas. É o número que os bancos anunciam.'],
+     ['IR','Imposto de Renda. "Isento" = você não paga nada. Nos tributados, 15% é a alíquota de quem deixa o dinheiro mais de 2 anos (quanto menos tempo, mais imposto).'],
+     ['líquida a.a.','O que <b>sobra no seu bolso</b> depois do imposto e das taxas. É o único número que vale comparar entre linhas.'],
+     ['como é calculado','A conta exata por trás da linha, para você conferir. "CDI" é a taxa que os bancos usam entre si — anda quase colada na Selic.'],
+     ['risco','O que pode dar errado. "FGC" é o fundo que devolve até R$ 250 mil por banco se o banco quebrar. Produto sem FGC e sem garantia do governo depende da saúde de quem emitiu.']])
+   +'<div class="card" style="margin:10px 0"><h3>Que taxa usar nas projeções de 20, 30, 35 anos</h3>'
+   +'<div class="grid"><div><label>Base da projeção longa</label><select id="usarLongo">'
+   +'<option value="1"'+(S.usarLongo?' selected':'')+'>Taxa real de longo prazo — '+fp(P.longoReal,2)+'% + inflação</option>'
+   +'<option value="0"'+(!S.usarLongo?' selected':'')+'>A taxa de hoje ('+fp(P.invest,2)+'%) projetada para sempre</option></select></div>'
+   +'<div><label>Taxa real de longo prazo (% a.a. acima da inflação)</label><input id="p_longo" type="number" step="0.1" value="'+P.longoReal+'"></div>'
+   +'<div style="grid-column:span 2"><label>De onde vem esse número</label><input id="p_longoF" value="'+esc(P.longoFonte)+'"></div></div>'
+   +'<div class="note '+(S.usarLongo?'go':'warn')+'" style="margin:10px 0 0"><b>Por que isso existe — e por que muda tudo.</b> '
+   +(segueSelic()?'Você escolheu <b>'+esc((invTipos(S.selic).find(t=>t.k===S.invTipo)||{}).n||'')+'</b>, que <b>acompanha a Selic</b>. A Selic hoje está em '+fp(S.selic,2)+'%, mas ela não fica parada por 35 anos — já esteve em 2% em 2021. Projetar a taxa de hoje até 2061 seria apostar que o Brasil fica com juro alto para sempre. '
+     :'Você escolheu um papel <b>IPCA + taxa real</b>. Aqui a taxa real é contratada: se você comprar e carregar até o vencimento, ela não depende da Selic. ')
+   +'A referência honesta para prazo longo é o que o mercado paga <b>hoje</b> para travar taxa real por décadas: o Tesouro IPCA+ 2045 está em <b>IPCA + '+fp(P.longoReal,2)+'%</b>. É esse o número que uso por padrão. '
+   +'<b>Projeção em uso: '+fp(realProj(),2)+'% reais ao ano</b> ('+fp(nomProj(),2)+'% nominais com inflação de '+fp(P.infl,1)+'%)'+(S.usarLongo?'.':' — <b>é a taxa de hoje, congelada por '+HORIZ_TXT()+'. Trate o resultado como teto, não como previsão.</b>')+'</div></div>'
    +'<div class="note lj"><b>Como ler.</b> Verde = rende mais que a sua taxa de financiamento ('+fp(S.taxa,2)+'%): financiar mais e investir a sobra ganha. Vermelho = perde: cada real financiado custa mais do que rende. <b>Poupança, Tesouro Selic, CDB e LCI acompanham a Selic</b> — quando ela cai, caem juntos. <b>FI-Infra e debênture incentivada são IPCA + taxa real</b>: não seguem a Selic, por isso a taxa real deles é campo editável, não fórmula.</div>';
-  if(!ok){ html+='<div class="note stop"><b>Confira os valores.</b> Entrada não pode passar do valor do imóvel nem do que você tem; renda precisa ser maior que zero.</div>'; document.getElementById('app').innerHTML=html; bind(); return; }
+  if(!ok){ html+='<div class="note stop"><b>Falta ajustar '+(probs.length>1?'estes campos':'este campo')+' para eu calcular o resto:</b><ul style="margin:8px 0 0;padding-left:20px;line-height:1.7">'
+    +probs.map(t=>'<li>'+t+'</li>').join('')+'</ul><p style="margin:10px 0 0">O restante da página (parcelas, curva de entrada, portabilidade, bancos, cidade, seguros e consórcio) aparece assim que isso for resolvido — nada foi perdido.</p></div>';
+    fechar(SO_RES?null:FORM,html); bind(SO_RES); return; }
   /* --- 4. resultado por prazo --- */
-  const R={}; [20,25,30,35].forEach(a=>R[a]=sac(fin,a,S.taxa,S.idade));
+  const PRAZOS=[20,25,30,35].filter(a=>a<=prazoMaximo(S.idade));
+  if(!PRAZOS.length)PRAZOS.push(prazoMaximo(S.idade));
+  if(!PRAZOS.includes(S.prazoRef)&&S.prazoRef<=prazoMaximo(S.idade))PRAZOS.push(S.prazoRef);
+  PRAZOS.sort((a,b)=>a-b);
+  const R={}; PRAZOS.forEach(a=>R[a]=sac(fin,a,S.taxa,S.idade));
+  if(!R[S.prazoRef])R[S.prazoRef]=sac(fin,Math.min(S.prazoRef,prazoMaximo(S.idade)),S.taxa,S.idade);
   html+='<h2>4. A parcela em cada prazo — nominal e em dinheiro de hoje</h2>'
-   +'<div class="strip"><div class="tile"><small>financia</small><b>'+fk(fin)+'</b><span class="h">'+fp(fin/S.valor*100,0)+'% do imóvel</span></div>'
+   +'<div class="strip"><div class="tile"><small>financia</small><b>'+fk(fin)+'</b><span class="h">'+(S.custosFin?fk(S.valor-entradaTot)+' do imóvel + '+fk(custosPrev)+' de escritura':fp(fin/S.valor*100,0)+'% do imóvel')+'</span></div>'
    +'<div class="tile"><small>entrada total</small><b>'+fk(entradaTot)+'</b><span class="h">'+(fgtsOk&&S.fgtsEnt>0?'sendo '+fk(S.fgtsEnt)+' de FGTS':'sem FGTS')+'</span></div>'
-   +'<div class="tile"><small>sobra líquida</small><b>'+fk(sobra)+'</b><span class="h">rende '+fmt(sobra*P.invest/100/12)+'/mês</span></div>'
+   +'<div class="tile"><small>sobra líquida</small><b>'+fk(sobra)+'</b><span class="h">'+(S.custosFin?'escritura foi para a dívida':'já descontados '+fk(custosPrev)+' de escritura')+'</span></div>'
    +'<div class="tile"><small>renda total</small><b>'+fk(rendaTot)+'</b><span class="h">'+(S.comp.some(x=>+x>0)?'com composição':'só a sua')+'</span></div></div>'
    +'<div class="scroll"><table><thead><tr><th class="mono">prazo</th><th class="mono">1ª parcela</th><th class="mono">% da renda</th><th class="mono">última parcela</th><th class="mono">última, em R$ de hoje</th><th class="mono">juros totais</th><th class="mono">seguros</th><th class="mono">total pago</th><th class="mono">total, em R$ de hoje</th></tr></thead><tbody>'
-   +[20,25,30,35].map(a=>{const r=R[a],c=r.p1/rendaTot*100;
+   +PRAZOS.map(a=>{const r=R[a],c=r.p1/rendaTot*100;
      return '<tr'+(a===S.prazoRef?' class="hl"':'')+'><td class="mono"><b>'+a+' anos</b></td><td class="mono"><b>'+fmt(r.p1)+'</b></td>'
       +'<td class="mono '+(c>30?'neg':c>25?'wr':'pos')+'">'+fp(c,1)+'% '+(c>30?'<span class="chip no">acima</span>':c>25?'<span class="chip mid">limite</span>':'<span class="chip ok">ok</span>')+'</td>'
       +'<td class="mono">'+fmt(r.pn)+'</td><td class="mono">'+fmt(hoje(r.pn,a))+'</td>'
       +'<td class="mono">'+fk(r.jur)+'</td><td class="mono">'+fk(r.seg)+'</td><td class="mono">'+fk(r.tot)+'</td>'
       +'<td class="mono">'+fk(r.ps.reduce((acc,p,i)=>acc+hoje(p,i/12),0))+'</td></tr>';}).join('')
    +'</tbody></table></div>'
+   +gloss([['prazo','Em quantos anos você pretende pagar. Prazo maior = parcela menor, juros totais maiores.'],
+     ['1ª parcela','A primeira, a mais cara de todas. No sistema SAC a parcela só cai daí em diante.'],
+     ['% da renda','Quanto a primeira parcela consome da sua renda total. Até 25% é confortável; acima de 30% o banco costuma recusar.'],
+     ['última parcela','A última do contrato, em reais daquele ano futuro.'],
+     ['última, em R$ de hoje','A mesma parcela, mas traduzida para o poder de compra de hoje — o quanto ela "pesaria" se você tivesse que pagá-la agora.'],
+     ['juros totais','Tudo o que você paga de juros ao banco ao longo do contrato, somado.'],
+     ['seguros','MIP + DFI somados. São obrigatórios e entram dentro da parcela (explicados na seção 9).'],
+     ['total pago','Soma de tudo: o dinheiro emprestado + juros + seguros. É um número grande e assustador — e enganoso, porque soma reais de 2026 com reais de 2056.'],
+     ['total, em R$ de hoje','O mesmo total, com cada parcela trazida para o valor de hoje. <b>É este o custo real.</b> Compare os prazos por esta coluna, não pela anterior.']])
    +'<div class="note lj"><b>Como ler.</b> No SAC a parcela começa alta e cai todo mês. "Última, em R$ de hoje" é o que a parcela final compra em poder de compra atual, descontando '+fp(P.infl,1)+'% de inflação ao ano — em 30 anos, a última parcela vale cerca de um quarto da primeira em dinheiro de hoje. <b>"Total, em R$ de hoje" é o custo real do financiamento</b>: some tudo o que você paga, cada parcela trazida ao valor de hoje. Compare esse número entre os prazos — a diferença é muito menor do que "juros totais" sugere, porque parcela longa é paga com dinheiro que vale menos.</div>';
   /* comprometimento por renda */
   const r30=R[S.prazoRef];
@@ -259,25 +527,265 @@ function render(){
    +'<div class="card"><h3>Parcela por ano — o que ela vale de verdade</h3><div class="scroll" style="margin:0"><table style="min-width:0"><thead><tr><th class="mono">ano</th><th class="mono">parcela nominal</th><th class="mono">em R$ de hoje</th><th class="mono">% da renda de hoje</th></tr></thead><tbody>'
    +[1,5,10,15,20,25,30].filter(a=>a<=S.prazoRef).map(a=>{const p=r30.ps[Math.min(r30.ps.length-1,(a-1)*12)];
      return '<tr><td class="mono">'+a+'</td><td class="mono">'+fmt(p)+'</td><td class="mono"><b>'+fmt(hoje(p,a-1))+'</b></td><td class="mono">'+fp(hoje(p,a-1)/rendaTot*100,1)+'%</td></tr>';}).join('')
-   +'</tbody></table></div><p class="meta" style="margin:8px 0 0">supondo que sua renda acompanhe a inflação — é o que faz a parcela "encolher" com o tempo</p></div></div>';
-  /* --- 5. curva de entrada --- */
-  const ents=[]; const lo=Math.max(50000,Math.ceil(S.valor*0.2/50000)*50000), hi=Math.min(S.caixa,S.valor-50000);
-  for(let e=lo;e<=hi;e+=50000)ents.push(e); if(!ents.length)ents.push(S.entrada);
-  const ref=Math.max(...sac(S.valor-ents[0],S.prazoRef,S.taxa,S.idade).ps);
-  const cv=ents.map(e=>({e,pat:patrim(S.valor,S.caixa,e,S.prazoRef,S.taxa,S.idade,ref),p1:sac(S.valor-e,S.prazoRef,S.taxa,S.idade).p1}));
+   +'</tbody></table></div>'+gloss([['ano','O ano do contrato: 1 é agora, 30 é o último.'],
+     ['parcela nominal','O valor que vai aparecer no boleto daquele ano.'],
+     ['em R$ de hoje','Esse mesmo boleto convertido para dinheiro de hoje. É o que mostra que a parcela "encolhe" com o tempo.'],
+     ['% da renda de hoje','Quanto essa parcela pesaria na sua renda atual. Se sua renda acompanhar a inflação, é esse o peso que você vai sentir.']],'O que significa cada coluna')+'<p class="meta" style="margin:8px 0 0">supondo que sua renda acompanhe a inflação — é o que faz a parcela "encolher" com o tempo</p></div></div>';
+  /* --- SAC x PRICE --- */
+  (function(){ const an=S.prazoRef, A=sac(fin,an,S.taxa,S.idade,'sac'), B=sac(fin,an,S.taxa,S.idade,'price');
+    const hA=A.ps.reduce((a,p,i)=>a+hoje(p,i/12),0), hB=B.ps.reduce((a,p,i)=>a+hoje(p,i/12),0);
+    const anos=[]; for(let y=1;y<=an;y++)anos.push(y);
+    html+='<h2>SAC ou Price — a diferença que decide a sua parcela</h2>'
+     +'<p>São duas formas de dividir a mesma dívida de '+fk(fin)+' em '+an+' anos, à mesma taxa de '+fp(S.taxa,2)+'%. <b>Não é uma mais barata que a outra por mágica</b>: elas trocam parcela inicial por juros totais. Abaixo, as duas calculadas com os seus números.</p>'
+     +'<div class="comp"><div class="card"><h3>SAC — parcela que cai</h3>'
+     +'<p style="margin:0 0 8px">Você paga <b>sempre a mesma fatia da dívida</b> ('+fmt(fin/(an*12))+' por mês) e mais os juros sobre o que ainda deve. Como a dívida encolhe, os juros encolhem, e a parcela cai todo mês.</p>'
+     +'<div class="linha"><span>1ª parcela</span><b>'+fmt(A.p1)+'</b></div>'
+     +'<div class="linha"><span>última parcela</span><b>'+fmt(A.pn)+'</b></div>'
+     +'<div class="linha"><span>juros totais</span><b>'+fk(A.jur)+'</b></div>'
+     +'<div class="linha"><span>total pago, em R$ de hoje</span><b>'+fk(hA)+'</b></div>'
+     +'<div class="linha"><span>financia até</span><b>'+fp(P.regras.ltvSac,0)+'% do imóvel</b></div></div>'
+     +'<div class="card"><h3>Price — parcela fixa</h3>'
+     +'<p style="margin:0 0 8px">A parcela de juros + amortização é <b>a mesma do começo ao fim</b> ('+fmt(B.ps[0]-fin*(mip(S.idade)+P.dfi/100))+' + seguros). No início quase tudo é juro e você quase não abate a dívida; no fim inverte.</p>'
+     +'<div class="linha"><span>1ª parcela</span><b>'+fmt(B.p1)+'</b></div>'
+     +'<div class="linha"><span>última parcela</span><b>'+fmt(B.pn)+'</b></div>'
+     +'<div class="linha"><span>juros totais</span><b>'+fk(B.jur)+'</b></div>'
+     +'<div class="linha"><span>total pago, em R$ de hoje</span><b>'+fk(hB)+'</b></div>'
+     +'<div class="linha"><span>financia até</span><b>'+fp(P.regras.ltvPrice,0)+'% do imóvel</b></div></div></div>'
+     +figura('A parcela ao longo do contrato',
+       'A mesma dívida, os mesmos '+an+' anos, a mesma taxa. O que muda é o desenho do pagamento. <b>Valores nominais</b> — lembrando que a parcela do fim vale bem menos em poder de compra.',
+       svgLinha({series:[{nome:'SAC',cor:C1x(),pts:anos.map(y=>[y,A.ps[Math.min(A.ps.length-1,(y-1)*12)]])},
+                         {nome:'Price',cor:C2x(),pts:anos.map(y=>[y,B.ps[Math.min(B.ps.length-1,(y-1)*12)]])}],
+         fx:v=>'ano '+Math.round(v), fxTip:v=>'ano '+Math.round(v), fyTip:v=>v==null?'—':fmt(v), h:240}),
+       [['SAC',C1x()],['Price',C2x()]],
+       '<div class="scroll"><table><thead><tr><th class="mono">ano</th><th class="mono">SAC</th><th class="mono">Price</th><th class="mono">diferença</th><th class="mono">saldo devedor SAC</th><th class="mono">saldo devedor Price</th></tr></thead><tbody>'
+        +[1,5,10,15,20,25,30,35].filter(y=>y<=an).map(y=>{const i=Math.min(A.ps.length-1,(y-1)*12);
+          return '<tr><td class="mono">'+y+'</td><td class="mono">'+fmt(A.ps[i])+'</td><td class="mono">'+fmt(B.ps[i])+'</td>'
+           +'<td class="mono '+(A.ps[i]<B.ps[i]?'pos':'neg')+'">'+(A.ps[i]<B.ps[i]?'−':'+')+fmt(Math.abs(A.ps[i]-B.ps[i]))+'</td>'
+           +'<td class="mono">'+fk(A.sal[i])+'</td><td class="mono">'+fk(B.sal[i])+'</td></tr>';}).join('')+'</tbody></table></div>')
+     +'<div class="scroll"><table><thead><tr><th>o que importa</th><th>SAC</th><th>Price</th></tr></thead><tbody>'
+     +'<tr><td><b>Parcela no começo</b></td><td>Mais alta — '+fmt(A.p1)+'</td><td>Mais baixa — '+fmt(B.p1)+'</td></tr>'
+     +'<tr><td><b>Parcela no fim</b></td><td>Bem menor — '+fmt(A.pn)+'</td><td>Praticamente igual — '+fmt(B.pn)+'</td></tr>'
+     +'<tr><td><b>Juros totais</b></td><td>'+fk(A.jur)+'</td><td>'+fk(B.jur)+' <span class="neg">('+fp((B.jur/A.jur-1)*100,0)+'% a mais)</span></td></tr>'
+     +'<tr><td><b>Quanto você financia</b></td><td>Até '+fp(P.regras.ltvSac,0)+'% — entrada menor</td><td>Até '+fp(P.regras.ltvPrice,0)+'% — exige mais entrada</td></tr>'
+     +'<tr><td><b>Renda exigida</b></td><td>Maior, porque o banco olha a 1ª parcela</td><td>Menor — é o que faz o Price aprovar casos que o SAC recusa</td></tr>'
+     +'<tr><td><b>Saldo devedor</b></td><td>Cai rápido — bom para quitar ou vender antes</td><td>Cai devagar no começo — quitar cedo rende pouco desconto</td></tr>'
+     +'<tr><td><b>Amortizar com FGTS</b></td><td>Muito eficaz, o saldo já é menor</td><td>Eficaz, mas você já pagou mais juros até ali</td></tr>'
+     +'<tr><td><b>Se a inflação corrói a parcela</b></td><td>Cai duas vezes: pelo sistema e pela inflação</td><td>Só pela inflação — e é justamente por isso que gente que aposta em inflação alta prefere Price</td></tr>'
+     +'</tbody></table></div>'
+     +'<div class="note lj"><b>Como escolher, sem conversa de corretor.</b> Se a primeira parcela do SAC cabe na sua renda com folga, <b>SAC é melhor</b>: você paga '+fk(B.jur-A.jur)+' menos de juros e a dívida some mais rápido. O Price existe para quem <b>não consegue aprovação no SAC</b> — parcela inicial menor destrava o crédito, ao custo de juros maiores e entrada maior. No seu caso, a diferença na primeira parcela é de <b>'+fmt(Math.abs(A.p1-B.p1))+'</b> e nos juros totais, de <b>'+fk(Math.abs(A.jur-B.jur))+'</b>.</div>'
+     +'<div class="note warn"><b>Um detalhe que o comparativo esconde.</b> Em R$ de hoje a diferença entre os dois é bem menor do que "juros totais" sugere: '+fk(hA)+' contra '+fk(hB)+'. Juros pagos daqui a 25 anos valem pouco em poder de compra atual. <b>Não escolha sistema pelo número de juros nominais</b> — escolha pela parcela que cabe e pela velocidade com que você quer se livrar da dívida.</div>'
+     +'<div class="def"><b>Você está simulando pelo '+(S.sistema==='price'?'Price':'SAC')+'.</b> Troque no campo "sistema de amortização" da seção 3 e a página inteira recalcula — inclusive a entrada mínima, que muda de '+fp(100-P.regras.ltvSac,0)+'% para '+fp(100-P.regras.ltvPrice,0)+'%.</div>';
+  })();
+  /* --- 5. A RECOMENDAÇÃO --- */
+  const LIM=0.25, LIMT=0.30;
+  const orcConf=rendaTot*LIM, orcTeto=rendaTot*LIMT;
+  const entMax=Math.min(S.caixa-custosAVista,S.valor-20000);
+  const grade=[]; for(let e=Math.ceil(entMin/10000)*10000;e<=entMax;e+=Math.max(10000,Math.round(S.valor*0.025/5000)*5000))grade.push(e);
+  if(grade.length&&grade[grade.length-1]!==entMax)grade.push(entMax);
+  if(!grade.length&&entMin<=entMax)grade.push(entMin);
+  const PRZ=[20,25,30,35].filter(a=>a<=prazoMaximo(S.idade));
+  /* orçamento: o que você já se dispõe a gastar por mês — o maior entre 25% da renda
+     e a parcela do seu próprio plano (senão a comparação seria desleal com o seu plano) */
+  const HOR=Math.max(...PRZ,S.prazoRef);
+  const seuSim0=simular(entradaTot,S.prazoRef,1e12,S.prazoRef);
+  const orcAuto=Math.max(orcConf,Math.min(orcTeto,seuSim0.p1));
+  const orc=S.aporte>0?seuSim0.p1+S.aporte:orcAuto;
+  const viaveis=[];
+  PRZ.forEach(a=>grade.forEach(e=>{ const sm=simular(e,a,orc,HOR);
+    if(sm.p1>orcTeto||sm.aporte1<0)return; viaveis.push(sm); }));
+  /* entre os que chegam perto do topo (2% de diferença é ruído diante de 35 anos de
+     premissas), fica o de MENOR parcela — folga no mês vale mais que otimização. */
+  const topo=viaveis.length?Math.max(...viaveis.map(x=>x.patrimH)):0;
+  if(seuSim0.p1<=orcTeto)viaveis.push(simular(entradaTot,S.prazoRef,orc,HOR));
+  const quase=viaveis.filter(x=>x.patrimH>=topo*0.98);
+  let sug=quase.length?quase.reduce((a,b)=>b.p1<a.p1?b:a):null;
+  const otimo=viaveis.length?viaveis.reduce((a,b)=>b.patrimH>a.patrimH?b:a):null;
+  const seu=simular(entradaTot,S.prazoRef,orc,HOR);
+  const difH=sug?sug.patrimH-seu.patrimH:0;
+  const igual=sug&&sug.entrada===entradaTot&&sug.anos===S.prazoRef;
+  const C1='var(--c1)',C2='var(--c2)';
+  html+='<h2>5. Cenário recomendado — otimização sob orçamento constante</h2>'
+   +'<p>Esta seção não opina: ela <b>enumera cenários e devolve o que vence sob um critério declarado</b>. O critério está aberto logo abaixo — discordar dele é legítimo, e muda o resultado.</p>'+'<div class="def"><b>O método, em quatro linhas.</b> <b>Função objetivo:</b> maximizar o patrimônio ao fim do horizonte, medido em R$ de hoje (imóvel + carteira). <b>Restrições:</b> primeira parcela ≤ '+fp(LIMT*100,0)+'% da renda total e aporte mensal não negativo — cenário que viole qualquer uma é <b>descartado</b>, não penalizado. <b>Variáveis livres:</b> tamanho da entrada e prazo do financiamento; todo o resto fica constante. <b>Desempate:</b> entre os cenários que chegam a 2% do topo, vence o de <b>menor parcela</b> — diferença de 2% depois de '+HOR+' anos de premissas é ruído estatístico, folga mensal não é.</div>'+'<div class="def"><b>Por que orçamento constante.</b> Comparar cenários com desembolsos mensais diferentes mede quanto dinheiro entrou, não qual decisão foi melhor. Fixando o gasto mensal e o horizonte, a única coisa que varia é <b>para onde</b> o dinheiro foi — parcela ou carteira. É o que torna os números desta seção comparáveis entre si.</div>'+'<p>Orçamento mensal fixado em <b>'+fmt(orc)+'</b>, horizonte comum de <b>'+HOR+' anos</b>. '
+   +(S.aporte>0?'Esse orçamento é o que <b>você declarou</b>: a parcela do seu plano ('+fmt(seuSim0.p1)+') mais '+fmt(S.aporte)+' que você quer investir todo mês.'
+    :'Como você deixou o campo de aporte em zero, usei o maior entre 25% da sua renda e a parcela do plano que você digitou, respeitando o teto de 30%. <b>Se você já sabe quanto quer investir por mês, preencha o campo na seção 3</b> — a conta inteira passa a usar o seu número.')
+   +' Todo cenário abaixo gasta exatamente isso por mês: o que não vai para a parcela, vai para investimento. Assim a comparação é justa.</p>';
+  if(!sug){ html+='<div class="note stop"><b>Nenhum cenário cabe no teto de 30% da renda.</b> Com '+fmt(rendaTot)+' de renda e um imóvel de '+fk(S.valor)+', nem o prazo mais longo com a maior entrada possível gera parcela que caiba. Reduza o valor do imóvel, aumente a entrada, ou componha renda.</div>'; }
+  else{
+  html+='<div class="plano">'
+   +'<div class="card"><h3><i style="background:'+C1+'"></i>Seu plano</h3>'
+   +'<div class="linha"><span>entrada</span><b>'+fk(entradaTot)+'</b></div>'
+   +'<div class="linha"><span>prazo</span><b>'+S.prazoRef+' anos</b></div>'
+   +'<div class="linha"><span>1ª parcela</span><b>'+fmt(seu.p1)+'</b></div>'
+   +'<div class="linha"><span>guardar por mês (início)</span><b>'+(seu.aporte1>=0?fmt(seu.aporte1):'<span class="neg">não sobra</span>')+'</b></div>'
+   +'<div class="linha"><span>patrimônio em '+HOR+' anos, em R$ de hoje</span><b>'+fk(seu.patrimH)+'</b></div></div>'
+   +'<div class="card sug"><h3><i style="background:'+C2+'"></i>'+(igual?'Sugestão = seu plano':'Sugestão')+'</h3>'
+   +'<div class="linha"><span>entrada</span><b>'+fk(sug.entrada)+(sug.entrada!==entradaTot?' <span class="'+(sug.entrada<entradaTot?'pos':'wr')+'">('+(sug.entrada<entradaTot?'−':'+')+fk(Math.abs(sug.entrada-entradaTot))+')</span>':'')+'</b></div>'
+   +'<div class="linha"><span>prazo</span><b>'+sug.anos+' anos</b></div>'
+   +'<div class="linha"><span>1ª parcela</span><b>'+fmt(sug.p1)+'</b></div>'
+   +'<div class="linha"><span>guardar por mês (início)</span><b class="'+(sug.aporte1>=seu.aporte1?'pos':'wr')+'">'+fmt(sug.aporte1)+'</b></div>'
+   +'<div class="linha"><span>patrimônio em '+HOR+' anos, em R$ de hoje</span><b class="'+(sug.patrimH>=seu.patrimH?'pos':'wr')+'">'+fk(sug.patrimH)+'</b></div></div></div>'
+   +(function(){ const rm=x=>rendaMes(x.cartH);
+     const bloco=(t,x,cor)=>'<div class="card"><h3><i style="background:'+cor+'"></i>'+t+' — o que existe no fim</h3><div class="strip">'
+       +'<div class="tile"><small>imóvel, em R$ de hoje</small><b>'+fk(S.valor)+'</b><span class="h">R$ '+fk(S.valor*Math.pow(1+P.infl/100,HOR)).replace('R$ ','')+' nominais em '+HOR+' anos</span></div>'
+       +'<div class="tile"><small>carteira, em R$ de hoje</small><b>'+fk(x.cartH)+'</b><span class="h">nominal '+fk(x.cart)+'</span></div>'
+       +'<div class="tile"><small>patrimônio, em R$ de hoje</small><b>'+fk(x.patrimH)+'</b><span class="h">imóvel + carteira</span></div>'
+       +'<div class="tile"><small>renda da carteira</small><b>'+fmt(rm(x))+'/mês</b><span class="h">em R$ de hoje, sem encolher o principal</span></div></div></div>';
+     return '<div class="plano">'+bloco('Seu plano',seu,C1)+bloco('Sugestão',sug,C2)+'</div>'
+      +'<div class="def"><b>Como leio a "renda da carteira".</b> É o que dá para sacar todo mês <b>sem encolher o principal em poder de compra</b>. Não é o rendimento nominal: parte dele só repõe a inflação de '+fp(P.infl,1)+'% e precisa ficar na carteira, senão a renda mingua ano após ano. O que sobra é a <b>taxa real</b>, hoje em <b>'+fp(realProj(),2)+'% ao ano</b> ('+fp(realProj()/12,3)+'% ao mês) — '
+  +(S.usarLongo?'que é a taxa real de longo prazo que você definiu em “Onde a sobra rende”, a mesma que um Tesouro IPCA+ longo paga hoje.':'que vem do investimento escolhido em “Onde a sobra rende”: (1 + '+fp(P.invest,2)+'%) ÷ (1 + '+fp(P.infl,1)+'%) − 1.')
+  +' Na prática é juro, dividendo de FI-Infra ou cupom de debênture. O imóvel aparece nas duas colunas porque é o mesmo nos dois planos; <b>quem muda é a carteira ao lado</b>.</div>'; })()
+   +(function(){ const sobraIni=Math.max(0,S.caixa-sug.entrada-custosAVista);
+     const r=Math.pow(1+realProj()/100,HOR); const deSobra=sobraIni*r, deAportes=Math.max(0,sug.cartH-deSobra);
+     const pctSobra=sug.cartH>0?deSobra/sug.cartH*100:0;
+     return '<div class="fig"><h4>De onde vem a carteira da sugestão</h4>'
+      +'<p class="sub">A mesma carteira de '+fk(sug.cartH)+' (em R$ de hoje) tem duas origens muito diferentes — e uma delas costuma surpreender.</p>'
+      +'<div class="scroll" style="margin:0"><table><thead><tr><th>origem</th><th class="mono">valor de partida</th><th class="mono">multiplicador</th><th class="mono">vira, em R$ de hoje</th><th class="mono">fatia</th></tr></thead><tbody>'
+      +'<tr><td><b>O dinheiro que sobrou hoje</b><br><small>caixa − entrada − custos, investido uma vez só e deixado quieto</small></td><td class="mono">'+fk(sobraIni)+'</td><td class="mono">× '+fp(r,2)+'</td><td class="mono"><b>'+fk(deSobra)+'</b></td><td class="mono">'+fp(pctSobra,0)+'%</td></tr>'
+      +'<tr><td><b>O que você guarda todo mês</b><br><small>'+fmt(sug.aporte1)+' no começo, crescendo conforme a parcela cai</small></td><td class="mono">'+fmt(sug.aporte1)+'/mês</td><td class="mono">—</td><td class="mono"><b>'+fk(deAportes)+'</b></td><td class="mono">'+fp(100-pctSobra,0)+'%</td></tr>'
+      +'</tbody></table></div>'
+      +'<div class="def"><b>De onde vem esse × '+fp(r,2)+' — a conta, passo a passo.</b> A '+fp(realProj(),2)+'% <b>acima da inflação</b>, o dinheiro dobra de poder de compra a cada <b>'+fp(Math.log(2)/Math.log(1+realProj()/100),1)+' anos</b>. Em '+HOR+' anos isso cabe '+fp(HOR/(Math.log(2)/Math.log(1+realProj()/100)),1)+' vezes: '
+      +[10,20,30,HOR].filter((v,i,a)=>a.indexOf(v)===i&&v<=HOR).map(y=>'em '+y+' anos × '+fp(Math.pow(1+realProj()/100,y),2)).join(' · ')+'. '
+      +'Por isso '+fk(sobraIni)+' viram '+fk(deSobra)+' <b>já em dinheiro de hoje</b> — não é a inflação inflando o número, a inflação já foi descontada. É juro composto real, e ele é assim mesmo: manso nos primeiros dez anos, violento nos últimos dez.</div>'
+      +'<div class="note '+(pctSobra>60?'warn':'lj')+'" style="margin:10px 0 0"><b>'+(pctSobra>60?'Atenção: '+fp(pctSobra,0)+'% do resultado vem de um único valor investido hoje.':'O grosso vem dos aportes mensais.')+'</b> '
+      +(pctSobra>60?'Isso significa que o número final é muito sensível a uma coisa só: a taxa real render '+fp(realProj(),2)+'% ao ano, sem falhar, por '+HOR+' anos. Um valor investido uma vez multiplica por '+fp(r,1)+' nesse prazo — é a mágica dos juros compostos, e também a fragilidade da projeção. Veja a tabela abaixo.'
+        :'Aportes mensais diluem o risco de premissa: entram em épocas diferentes, com taxas diferentes.')+'</div></div>'      +'<div class="note warn"><b>A premissa frágil que está escondida nesse × '+fp(r,2)+'.</b> Ela supõe que você consegue <b>'+fp(realProj(),2)+'% reais todo ano, por '+HOR+' anos seguidos</b>, reinvestindo tudo à mesma taxa. Hoje dá para travar isso num Tesouro IPCA+ longo — mas só até o vencimento dele; depois você reinveste ao que o mercado pagar naquele dia, que pode ser bem menos. <b>Esse é o maior risco da projeção, e ele não é de mercado nem de calote: é de reinvestimento.</b> A tabela abaixo mostra o tamanho do estrago se a taxa for menor.</div>'; })()
+   +(function(){ const taxas=[3,4,5,6,7,8].filter(t=>Math.abs(t-realProj())>0.15).concat([+realProj().toFixed(2)]).sort((a,b)=>a-b);
+     const calc=t=>{ const guard=P.longoReal, gU=S.usarLongo; P.longoReal=t; S.usarLongo=true;
+       const x=simular(sug.entrada,sug.anos,orc,HOR); P.longoReal=guard; S.usarLongo=gU; return x; };
+     return '<div class="fig"><h4>E se a taxa real não for '+fp(realProj(),2)+'%?</h4>'
+      +'<p class="sub">O mesmo plano, mudando só a taxa real que a carteira consegue ao longo de '+HOR+' anos. <b>Nenhuma outra premissa muda.</b> A coluna do multiplicador mostra no que se transforma cada R$ 1 investido hoje e deixado quieto.</p>'
+      +'<div class="scroll" style="margin:0"><table><thead><tr><th class="mono">taxa real</th><th class="mono">R$ 1 vira</th><th class="mono">carteira (R$ de hoje)</th><th class="mono">patrimônio (R$ de hoje)</th><th class="mono">renda/mês</th><th>leitura</th></tr></thead><tbody>'
+      +taxas.map(t=>{const x=calc(t); const aqui=Math.abs(t-realProj())<0.15;
+        return '<tr'+(aqui?' class="hl"':'')+'><td class="mono"><b>IPCA + '+fp(t,2)+'%</b>'+(aqui?' <span class="chip ok">em uso</span>':'')+'</td>'
+        +'<td class="mono">× '+fp(Math.pow(1+t/100,HOR),1)+'</td><td class="mono">'+fk(x.cartH)+'</td><td class="mono">'+fk(x.patrimH)+'</td><td class="mono">'+fmt(x.cartH*t/100/12)+'</td>'
+        +'<td><small>'+(t<=3?'pessimista — parecido com os anos de juro baixo (2020-21)':t<=4.5?'conservador':t<=6?'moderado':Math.abs(t-P.longoReal)<0.3?'o que o Tesouro IPCA+ longo paga hoje':t<P.longoReal?'abaixo do que o mercado paga hoje':'otimista — acima do que o mercado paga hoje')+'</small></td></tr>';}).join('')
+      +'</tbody></table></div>'
+      +'<div class="note warn" style="margin:10px 0 0"><b>Leia esta tabela antes de acreditar no número de cima.</b> Entre IPCA+3% e IPCA+7% o patrimônio final muda várias vezes. Nenhuma calculadora sabe qual vai acontecer — inclusive esta. O que dá para afirmar com honestidade: <b>hoje</b> é possível travar '+fp(P.longoReal,2)+'% reais num título longo do Tesouro; o resto é cenário.</div></div>'; })()
+   +'<div class="note '+(igual?'go':'lj')+'"><b>'+(igual?'Seu plano já é o melhor da grade testada.':'Resultado da otimização: entrada de '+fk(sug.entrada)+', financiando '+fk(S.valor-sug.entrada)+' em '+sug.anos+' anos, pagar '+fmt(sug.p1)+' de parcela e guardar '+fmt(sug.aporte1)+' todo mês.')+'</b> '
+   +(igual?'Testei '+(grade.length*PRZ.length)+' combinações de entrada e prazo, com o mesmo desembolso mensal e o mesmo horizonte, e nenhuma termina melhor que a sua.'
+     :(difH>=0?'Comparando os dois no mesmo ponto — '+HOR+' anos —, isso termina com <b>'+fk(difH)+' a mais</b> em dinheiro de hoje do que o seu plano ('+fp(Math.abs(difH)/Math.max(1,seu.patrimH)*100,1)+'% de diferença). '
+      :'No dinheiro é praticamente empate: termina com <b>'+fk(-difH)+' a menos</b> que o seu plano ('+fp(Math.abs(difH)/Math.max(1,seu.patrimH)*100,1)+'% — ruído diante de '+HOR+' anos de premissas). O que ela compra em troca é <b>parcela '+fmt(seu.p1-sug.p1)+' menor</b> e '+fmt(sug.aporte1-seu.aporte1)+' a mais de folga todo mês. Se o seu aperto é no mês, vale; se você quer o maior número no fim, fique com o seu plano. ')
+      +(difH<0?'':(function(){ const finReal=((1+S.taxa/100)/(1+P.infl/100)-1)*100, invReal=realProj(), financiarCompensa=invReal>finReal;
+         if(sug.entrada<entradaTot&&financiarCompensa)return 'A entrada menor funciona porque, descontada a inflação, o dinheiro rende <b>'+fp(invReal,2)+'% reais</b> investido e custa <b>'+fp(finReal,2)+'% reais</b> financiado: cada real que você <b>não</b> dá de entrada trabalha a favor.';
+         if(sug.entrada>entradaTot&&!financiarCompensa)return 'A entrada maior funciona porque, descontada a inflação, o financiamento custa <b>'+fp(finReal,2)+'% reais</b> e o dinheiro rende <b>'+fp(invReal,2)+'% reais</b>: cada real financiado a menos é juro economizado.';
+         if(sug.entrada>entradaTot&&financiarCompensa)return 'Repare que em dinheiro puro a entrada <b>menor</b> renderia mais (financiar custa '+fp(finReal,2)+'% reais e investir rende '+fp(invReal,2)+'% reais). A entrada maior entra aqui pelo outro critério: ela derruba a parcela e devolve folga no mês, com diferença de patrimônio dentro dos 2% que eu trato como ruído.';
+         if(sug.entrada<entradaTot&&!financiarCompensa)return 'Repare que em dinheiro puro a entrada <b>maior</b> economizaria juros (financiar custa '+fp(finReal,2)+'% reais e investir rende '+fp(invReal,2)+'% reais); a entrada menor aparece aqui por deixar mais dinheiro livre investido, com diferença dentro dos 2% que trato como ruído.';
+         return ''; })())
+      +' '+(sug.anos>S.prazoRef?'O prazo mais longo não é dívida a mais: a parcela menor libera mais dinheiro para investir todo mês, e a parcela antiga encolhe com a inflação.':sug.anos<S.prazoRef?'O prazo mais curto ganha porque aqui os juros pesam mais do que o rendimento do que sobraria.':''))
+   +'</div>'
+   +(otimo&&(otimo.entrada!==sug.entrada||otimo.anos!==sug.anos)?'<div class="def"><b>Por que não o máximo absoluto.</b> O cenário que termina com o maior número é entrada de '+fk(otimo.entrada)+' em '+otimo.anos+' anos ('+fk(otimo.patrimH)+', só '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% acima) — mas com parcela de '+fmt(otimo.p1)+' e apenas '+fmt(otimo.aporte1)+' de folga por mês. Diante de '+HOR+' anos de premissas, '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% é ruído; a folga mensal não é. Por isso a sugestão é a de <b>menor parcela entre as que chegam a 2% do topo</b>.</div>':'')
+   +'<div class="note warn"><b>O que esta recomendação não sabe.</b> Ela otimiza um número só: patrimônio no fim, em dinheiro de hoje. Não sabe se você dorme mal com dívida, se vai trocar de emprego, se quer quitar antes. <b>Parcela que cabe com folga vale mais que otimização</b> — se a diferença for pequena, fique com o cenário que te deixa tranquilo.</div>';
+
+  /* GRÁFICO 1 — patrimônio final por entrada */
+  const curva=grade.map(e=>{const sm=simular(e,sug.anos,orc,HOR); return [e,sm.patrimH,sm.p1,sm.p1>orcTeto||sm.aporte1<0];}).filter(x=>!x[3]);
+  if(curva.length>2){
+   html+=figura('Onde o patrimônio termina maior, por tamanho da entrada',
+     'Todos os pontos: financiar em <b>'+sug.anos+' anos</b>, gastando '+fmt(orc)+' por mês (parcela + o que sobra investido), e medir tudo em <b>'+HOR+' anos</b> — o mesmo ponto para todos, senão prazos diferentes não se comparam. Depois de quitado, o orçamento inteiro vai para investimento.',
+     svgLinha({series:[{nome:'patrimônio em R$ de hoje',cor:C2,pts:curva.map(x=>[x[0],x[1]])}],
+       marcas:[{x:entradaTot,y:(curva.find(x=>x[0]>=entradaTot)||curva[curva.length-1])[1],cor:C1,rot:'sua'},{x:sug.entrada,y:sug.patrimH,cor:C2,rot:'sugerida'}],
+       fx:v=>'R$ '+Math.round(v/1000)+'k', ylab:'patrimônio em '+HOR+' anos, em R$ de hoje ↑', xlab:'entrada →',
+       fxTip:v=>'entrada de '+fk(v), fyTip:v=>v==null?'—':fk(v), h:250}),
+     null,
+     '<div class="scroll"><table><thead><tr><th class="mono">entrada</th><th class="mono">1ª parcela</th><th class="mono">patrimônio em R$ de hoje</th></tr></thead><tbody>'
+      +curva.filter((x,i)=>i%Math.max(1,Math.round(curva.length/12))===0).map(x=>'<tr><td class="mono">'+fk(x[0])+'</td><td class="mono">'+fmt(x[2])+'</td><td class="mono">'+fk(x[1])+'</td></tr>').join('')+'</tbody></table></div>',
+     (function(){ const yMax=Math.max(...curva.map(x=>x[1])), yMin=Math.min(...curva.map(x=>x[1]));
+       const desc=curva[0][1]>curva[curva.length-1][1];
+       return '<ul>'
+        +'<li><b>Cada ponto da linha é um cenário diferente de entrada</b> — não é o tempo passando. Andar para a direita = dar mais entrada.</li>'
+        +'<li><b>A linha '+(desc?'desce':'sobe')+'</b>: quanto '+(desc?'<b>maior</b> a entrada, <b>menor</b> o patrimônio no fim':'<b>maior</b> a entrada, <b>maior</b> o patrimônio no fim')+'. '
+        +(desc?'Motivo: o seu dinheiro rende '+fp(realProj(),2)+'% reais investido e o financiamento custa '+fp(((1+S.taxa/100)/(1+P.infl/100)-1)*100,2)+'% reais. Cada real que você entrega de entrada para de render mais do que economiza de juro.'
+             :'Motivo: o financiamento custa mais do que o seu dinheiro rende, então adiantar dívida vale mais que investir.')+'</li>'
+        +'<li><b>Olhe a escala antes de se impressionar.</b> Do melhor ao pior cenário a diferença é de '+fk(yMax-yMin)+' — <b>'+fp((yMax/yMin-1)*100,1)+'%</b> do total. O gráfico amplia a inclinação porque o eixo começa em '+fk(yMin)+', não em zero.</li>'
+        +'<li><b>Os dois pontos marcados</b> são a sua entrada e a sugerida. A distância vertical entre eles é o que a mudança vale.</li>'
+        +'<li><b>O que este gráfico não mostra:</b> se a parcela cabe. Entrada menor sempre parece melhor aqui, mas a seção 4 é quem diz se o banco aprova.</li></ul>'; })());
+  }
+  /* GRÁFICO 2 — trajetória: seu plano vs sugestão */
+  if(!igual){
+   const n=Math.min(seu.serie.length,sug.serie.length);
+   html+=figura('Como o dinheiro guardado cresce nos dois planos',
+     'A carteira que se forma <b>ao lado</b> do imóvel, ano a ano, em dinheiro de hoje, até '+HOR+' anos. O imóvel não entra nesta curva (ele é igual nos dois) — aqui se vê só a diferença que a decisão faz. Quando um dos planos quita antes, a parcela inteira passa a ser investida, e a curva acelera.',
+     svgLinha({series:[{nome:'seu plano',cor:C1,pts:seu.serie.slice(0,n).map(p=>[p.ano,p.cartH])},
+                       {nome:'sugestão',cor:C2,pts:sug.serie.slice(0,n).map(p=>[p.ano,p.cartH])}],
+       fx:v=>'ano '+Math.round(v), ylab:'carteira, em R$ de hoje ↑', xlab:'anos →',
+       fxTip:v=>'ano '+Math.round(v), fyTip:v=>v==null?'—':fk(v), h:250}),
+     [['seu plano',C1],['sugestão',C2]],
+     '<div class="scroll"><table><thead><tr><th class="mono">ano</th><th class="mono">seu plano</th><th class="mono">sugestão</th><th class="mono">diferença</th></tr></thead><tbody>'
+      +[5,10,15,20,25,30,35].filter(a=>a<=n).map(a=>{const x=seu.serie[a-1],y=sug.serie[a-1];
+        return '<tr><td class="mono">'+a+'</td><td class="mono">'+fk(x.cartH)+'</td><td class="mono">'+fk(y.cartH)+'</td><td class="mono '+(y.cartH>=x.cartH?'pos':'neg')+'">'+(y.cartH>=x.cartH?'+':'')+fk(y.cartH-x.cartH)+'</td></tr>';}).join('')+'</tbody></table></div>',
+     (function(){ const f=seu.serie[n-1], g2=sug.serie[n-1]; const dif=Math.abs(g2.cartH-f.cartH), pct=dif/Math.max(1,f.cartH)*100;
+       const meio=seu.serie[Math.floor(n/2)-1];
+       return '<ul>'
+        +'<li><b>Aqui o eixo horizontal é o tempo</b> — ano 1 à esquerda, ano '+n+' à direita. Cada linha é o dinheiro que se acumula <b>ao lado</b> do imóvel.</li>'
+        +'<li><b>As duas linhas estão praticamente coladas</b>'+(pct<3?' — e é isso mesmo que o gráfico tem a dizer: a diferença entre os dois planos é de '+fk(dif)+' no fim, '+fp(pct,1)+'% do total. <b>A decisão de entrada quase não muda o resultado final</b>; o que muda de verdade é a folga mensal, que você vê nos cartões acima.':' até o meio do caminho, e separam no fim: '+fk(dif)+' de diferença, '+fp(pct,1)+'%.')+'</li>'
+        +'<li><b>A curva vira para cima no fim</b> porque juro composto é assim: em '+Math.floor(n/2)+' anos a carteira chega a '+fk(meio.cartH)+', e nos '+Math.ceil(n/2)+' anos seguintes ela multiplica por '+fp(f.cartH/Math.max(1,meio.cartH),1)+'. <b>Metade do tempo faz muito mais que metade do dinheiro.</b></li>'
+        +'<li><b>Quando o financiamento acaba</b>, a parcela inteira passa a ser investida — é o degrau extra de aceleração nos últimos anos.</li>'
+        +'<li><b>O imóvel não está nesta curva.</b> Ele é igual nos dois planos; aqui se vê só o que a decisão muda.</li></ul>'; })());
+  }
+  }
+  /* --- renda ao longo do tempo (dentro da seção da recomendação) --- */
+  if(sug){ const rm=v=>rendaMes(v);
+   const tipoSel=(invTipos(S.selic).find(t=>t.k===S.invTipo)||{n:'—'});
+   html+='<h3 style="margin-top:6px">Quanto isso paga por mês, em cada etapa</h3>'
+    +'<div class="note lj" style="margin:0 0 10px"><b>Investimento escolhido: '+esc(tipoSel.n)+'.</b> '
+    +(segueSelic()?'É um papel pós-fixado, que acompanha a Selic — por isso a projeção longa não usa a taxa de hoje, e sim '+fp(realProj(),2)+'% reais ao ano (o que um IPCA+ longo paga). Trocar de investimento em “Onde a sobra rende” muda esta tabela inteira.'
+      :'É um papel de IPCA + taxa real, e a projeção usa '+fp(realProj(),2)+'% reais ao ano. Trocar de investimento em “Onde a sobra rende” muda esta tabela inteira.')
+    +'</div>'
+    +'<p class="meta" style="margin:0 0 8px">Tudo em dinheiro de hoje, pela sugestão. "Renda da carteira" é a taxa real ('+fp(taxaReal(),2)+'% ao ano) sobre a carteira: o que dá para sacar todo mês sem que o principal encolha.</p>'
+    +'<div class="scroll"><table><thead><tr><th class="mono">ano</th><th class="mono">sua idade</th><th class="mono">carteira (R$ de hoje)</th><th class="mono">renda da carteira / mês</th><th class="mono">% da sua renda de hoje</th><th class="mono">cobre a parcela?</th><th class="mono">ainda paga parcela?</th><th class="mono">patrimônio (R$ de hoje)</th></tr></thead><tbody>'
+    +[5,10,15,20,25,30,35].filter(a=>a<=HOR).map(a=>{const x=sug.serie[a-1]; if(!x)return '';
+      const pagando=a<sug.anos;
+      const r=rm(x.cartH), pctRenda=r/rendaTot*100;
+      const parcHoje=pagando?hoje(sac(S.valor-sug.entrada+(S.custosFin?custosPrev:0),sug.anos,S.taxa,S.idade).ps[Math.min((a-1)*12,sug.anos*12-1)],a-1):0;
+      const cobre=pagando?r/Math.max(1,parcHoje):null;
+      return '<tr'+(a===HOR?' class="hl"':'')+'><td class="mono">'+a+'</td><td class="mono">'+(S.idade+a)+'</td><td class="mono">'+fk(x.cartH)+'</td>'
+       +'<td class="mono"><b>'+fmt(r)+'</b></td>'
+       +'<td class="mono '+(pctRenda>=100?'pos':pctRenda>=50?'wr':'')+'">'+fp(pctRenda,0)+'%'+(pctRenda>=100?' <span class="chip ok">renda substituída</span>':'')+'</td>'
+       +'<td class="mono">'+(pagando?(cobre>=10?'<span class="chip ok">sim, com folga</span>':cobre>=1?'<span class="chip ok">sim, '+fp(cobre,1)+'×</span>':fp(cobre*100,0)+' % da parcela'):'<span class="meta">—</span>')+'</td>'
+       +'<td class="mono">'+(pagando?'<span class="chip mid">sim</span>':'<span class="chip ok">quitado</span>')+'</td>'
+       +'<td class="mono">'+fk(x.cartH+S.valor)+'</td></tr>';}).join('')
+    +'</tbody></table></div>'
+    +gloss([['ano / sua idade','Quantos anos de contrato se passaram e a idade que você terá.'],
+      ['carteira (R$ de hoje)','O dinheiro investido ao lado do imóvel, já convertido para o poder de compra atual.'],
+      ['renda da carteira / mês','O que essa carteira pagaria por mês se você vivesse do rendimento <b>sem encolher o principal em poder de compra</b> — sacando só a taxa real ('+fp(taxaReal(),2)+'% ao ano) e deixando a inflação reposta. É a linha que responde "quando eu posso parar".'],
+      ['% da sua renda de hoje','A renda da carteira comparada com o que você ganha hoje ('+fmt(rendaTot)+'). Quando chega a 100%, <b>a carteira paga sozinha o seu padrão de vida atual</b> — é a definição prática de independência financeira.'],
+      ['cobre a parcela?','Se a renda da carteira naquele ano já daria para pagar a parcela do financiamento (as duas em dinheiro de hoje). Quando passa de 1×, a dívida deixou de ser um problema: o rendimento a sustenta.'],
+      ['ainda paga parcela?','Enquanto "sim", parte do orçamento vai para o banco. Quando vira "quitado", o orçamento inteiro passa a ser investido — é por isso que a curva acelera no fim.'],
+      ['patrimônio (R$ de hoje)','Carteira + imóvel. O imóvel entra pelo preço de compra porque a conta assume que ele acompanha a inflação, nem mais nem menos.']],'O que significa cada coluna')
+    +'<div class="note warn"><b>Sobre o valor do imóvel.</b> A calculadora assume que ele acompanha a inflação — por isso, em dinheiro de hoje, ele vale sempre '+fk(S.valor)+'. Em reais nominais daqui a '+HOR+' anos, isso dá '+fk(S.valor*Math.pow(1+P.infl/100,HOR))+'. <b>Não projetei valorização acima da inflação</b>: seria inventar número. Se o seu bairro vem subindo acima dela (veja a seção de bairros), o resultado real tende a ser melhor do que o mostrado aqui — mas isso é aposta, não conta.</div>';
+  }
+  /* --- 6. curva de entrada --- */
+  const ents=[]; const lo=Math.max(Math.ceil(entMin/50000)*50000,50000), hi=Math.min(S.caixa-custosAVista,S.valor-50000);
+  for(let e=lo;e<=hi;e+=50000)ents.push(e);
+  if(!ents.length){ html+='<h2>7. Quanto dar de entrada — a curva</h2>'
+    +'<div class="note warn"><b>Não há faixa de entrada para comparar.</b> Com '+fk(S.caixa)+' guardado, '+fk(custosPrev)+' de custos de escritura e entrada mínima de '+fk(entMin)+', sobra menos de uma faixa inteira para variar. A curva desta seção só faz sentido quando existem pelo menos duas entradas possíveis — ajuste o valor do imóvel ou o quanto você tem guardado.</div>'; }
+  else{
+  const cv=ents.map(e=>{const sm=simular(e,S.prazoRef,orc,HOR); return {e,pat:sm.patrim,patH:sm.patrimH,p1:sm.p1};});
   const best=cv.reduce((a,b)=>b.pat>a.pat?b:a), worst=cv.reduce((a,b)=>b.pat<a.pat?b:a);
-  let virada=null; for(let t=6;t<=15;t+=0.25){const rp=Math.max(...sac(S.valor-ents[0],S.prazoRef,t,S.idade).ps);
-    if(patrim(S.valor,S.caixa,ents[ents.length-1],S.prazoRef,t,S.idade,rp)>patrim(S.valor,S.caixa,ents[0],S.prazoRef,t,S.idade,rp)){virada=t;break;}}
+  const cvSua=cv.reduce((a,b)=>Math.abs(b.e-S.entrada)<Math.abs(a.e-S.entrada)?b:a);
+  let virada=null; const taxa0=S.taxa;
+  for(let t=6;t<=15;t+=0.25){ S.taxa=t;
+    const a=simular(ents[ents.length-1],S.prazoRef,orc,HOR).patrimH, b=simular(ents[0],S.prazoRef,orc,HOR).patrimH;
+    if(a>b){virada=t;break;} }
+  S.taxa=taxa0;
   html+='<h2>5. Quanto dar de entrada — a curva, com o mesmo desembolso mensal</h2>'
-   +'<p>Cada linha simula: dar essa entrada, financiar o resto em '+S.prazoRef+' anos, e <b>investir o que sobrou a '+fp(P.invest,1)+'% ao ano isento</b>, pagando do bolso o mesmo valor mensal em todos os cenários. No fim, imóvel quitado + carteira.</p>'
-   +'<div class="scroll"><table><thead><tr><th class="mono">entrada</th><th class="mono">financia</th><th class="mono">1ª parcela</th><th class="mono">% renda</th><th class="mono">patrimônio em '+S.prazoRef+' anos</th><th class="mono">em R$ de hoje</th><th class="mono">vs pior</th></tr></thead><tbody>'
-   +cv.map(x=>'<tr class="'+(x.e===best.e?'hl':x.e===S.entrada?'hla':'')+'"><td class="mono"><b>'+fk(x.e)+'</b>'+(x.e===S.entrada?' <span class="chip">sua</span>':'')+(x.e===best.e?' <span class="chip ok">melhor</span>':'')+'</td>'
+   +'<p>O mesmo motor do <b>cenário recomendado</b>, mas <b>fixando o seu prazo ('+S.prazoRef+' anos)</b> para isolar uma variável só: o tamanho da entrada. Todos gastam '+fmt(orc)+' por mês e são medidos em '+HOR+' anos. Se aqui o vencedor for diferente do sugerido na seção 6, é porque lá o prazo também podia mudar.</p>'
+   +'<div class="scroll"><table><thead><tr><th class="mono">entrada</th><th class="mono">financia</th><th class="mono">1ª parcela</th><th class="mono">% renda</th><th class="mono">patrimônio em '+HOR+' anos</th><th class="mono">em R$ de hoje</th><th class="mono">vs pior</th></tr></thead><tbody>'
+   +cv.map(x=>'<tr class="'+(x.e===best.e?'hl':x.e===S.entrada?'hla':'')+'"><td class="mono"><b>'+fk(x.e)+'</b>'+(x.e===S.entrada?' <span class="chip">sua</span>':'')+(x.e===best.e?' <span class="chip ok">topo</span>':'')+(sug&&sug.anos===S.prazoRef&&x.e===sug.entrada?' <span class="chip mid">sugerida</span>':'')+'</td>'
      +'<td class="mono">'+fk(S.valor-x.e)+'</td><td class="mono">'+fmt(x.p1)+'</td><td class="mono '+(x.p1/rendaTot>0.3?'neg':x.p1/rendaTot>0.25?'wr':'')+'">'+fp(x.p1/rendaTot*100,1)+'%</td>'
-     +'<td class="mono"><b>'+fk(x.pat)+'</b></td><td class="mono">'+fk(hoje(x.pat,S.prazoRef))+'</td><td class="mono pos">'+(x.pat>worst.pat?'+'+fk(x.pat-worst.pat):'—')+'</td></tr>').join('')
+     +'<td class="mono"><b>'+fk(x.pat)+'</b></td><td class="mono">'+fk(x.patH)+'</td><td class="mono pos">'+(x.pat>worst.pat?'+'+fk(x.pat-worst.pat):'—')+'</td></tr>').join('')
    +'</tbody></table></div>'
-   +'<div class="note '+(best.e<=S.entrada?'go':'warn')+'"><b>'+(best.e<S.entrada?'Entrada menor ganha: '+fk(best.e)+' termina com '+fk(best.pat-cv.find(x=>x.e===S.entrada).pat)+' a mais que a sua.':best.e===S.entrada?'Sua entrada é a melhor da curva.':'Entrada maior ganha: sua taxa está acima do que o dinheiro rende fora.')+'</b> '
-   +(virada?'A curva vira em <b>'+fp(virada,2)+'% de taxa</b>: abaixo, financiar mais e investir a sobra ganha; acima, entrada maior ganha. Sua taxa: '+fp(S.taxa,2)+'%.':'Na faixa testada (6% a 15%), entrada menor sempre ganha.')+'</div>'
+   +gloss([['entrada','O dinheiro que você dá no ato da compra, nesse cenário.'],
+     ['financia','O que falta, e vira dívida com o banco: valor do imóvel menos a entrada.'],
+     ['1ª parcela','A primeira parcela desse cenário.'],
+     ['% renda','Quanto essa primeira parcela come da sua renda. <b>Esta coluna manda em todas as outras</b>: se não couber, o cenário não existe, por melhor que seja o patrimônio.'],
+     ['patrimônio em N anos','O resultado final: imóvel quitado <b>mais</b> o dinheiro que você deixou investido rendendo. Todos os cenários gastam o mesmo por mês do seu bolso — muda só quanto foi para a entrada e quanto foi para a carteira.'],
+     ['em R$ de hoje','Esse patrimônio final traduzido para o poder de compra de hoje. R$ 17 milhões em 2056 não são R$ 17 milhões hoje.'],
+     ['vs pior','Quanto esse cenário rende a mais do que o pior da tabela. Serve para enxergar o tamanho da diferença entre dar mais ou menos entrada.']])
+   +'<div class="note '+(best.e<=S.entrada?'go':'warn')+'"><b>'+(best.e<S.entrada?'Entrada menor ganha: '+fk(best.e)+' termina com '+fk(best.pat-cvSua.pat)+' a mais que a sua.':best.e===S.entrada?'Sua entrada é a melhor da curva.':'Entrada maior ganha: sua taxa está acima do que o dinheiro rende fora.')+'</b> '
+   +(virada?'A curva vira em <b>'+fp(virada,2)+'% de taxa nominal de financiamento</b>: abaixo, financiar mais e investir a sobra ganha; acima, entrada maior ganha. Sua taxa: '+fp(S.taxa,2)+'%.':'Na faixa testada (6% a 15%), entrada menor sempre ganha.')+'</div>'
+   +'<div class="def"><b>"Topo" aqui não é o cenário recomendado.</b> Esta coluna marca o maior patrimônio puro. O cenário recomendado escolhe diferente de propósito: entre todos os cenários que chegam a 2% do topo, ela fica com o de <b>menor parcela</b>, porque 2% depois de '+HOR+' anos é ruído e folga no orçamento não é. Compare as duas colunas "% renda" e você vê o preço do topo.</div>'
    +'<div class="def"><b>Por que a curva existe</b> — quando a taxa do financiamento é menor do que o dinheiro rende investido, cada real financiado é lucro; quando é maior, cada real financiado é custo. A decisão de entrada é a comparação entre duas taxas, e nada mais. Mas a linha "% renda" manda: entrada menor só vale se a parcela couber.</div>';
+  } /* fim da curva de entrada */
   /* --- 6. portabilidade --- */
   html+='<h2>6. Portabilidade — se aparecer taxa de '+fp(S.taxaPort,1)+'%, quando migrar</h2>'
    +'<div class="scroll"><table><thead><tr><th class="mono">migra no ano</th><th class="mono">saldo devedor</th><th class="mono">juros que faltam a '+fp(S.taxa,2)+'%</th><th class="mono">a '+fp(S.taxaPort,1)+'%</th><th class="mono">economia</th><th class="mono">custo (~)</th><th>vale?</th></tr></thead><tbody>'
@@ -285,11 +793,18 @@ function render(){
      return '<tr'+(a===1&&e>P.custoPort*10?' class="hl"':'')+'><td class="mono">'+a+'</td><td class="mono">'+fk(p.sd)+'</td><td class="mono">'+fk(p.j0)+'</td><td class="mono">'+fk(p.j1)+'</td><td class="mono '+(e>P.custoPort*10?'pos':e>P.custoPort?'wr':'neg')+'"><b>'+fk(e)+'</b></td><td class="mono">'+fk(P.custoPort)+'</td>'
       +'<td>'+(e>P.custoPort*10?'<span class="chip ok">vale muito</span>':e>P.custoPort*2?'<span class="chip mid">vale</span>':'<span class="chip no">não paga</span>')+'</td></tr>';}).join('')
    +'</tbody></table></div>'
+   +gloss([['migra no ano','Em que ano do contrato você troca de banco.'],
+     ['saldo devedor','Quanto você ainda deve naquele momento. Quanto maior, mais vale a pena migrar.'],
+     ['juros que faltam','Todos os juros que ainda vai pagar até o fim, ficando no banco atual.'],
+     ['a [taxa nova]','Os mesmos juros, mas se você estivesse pagando a taxa melhor.'],
+     ['economia','A diferença entre as duas colunas anteriores — o dinheiro que você deixa de dar ao banco.'],
+     ['custo (~)','O que se gasta para mudar: laudo de avaliação do imóvel e averbação em cartório. A transferência em si é gratuita por lei.'],
+     ['vale?','"Vale muito" = economia acima de dez vezes o custo. "Não paga" = o custo come o ganho.']])
    +(function(){ const el=P.bancos.filter(b=>(b[5]!=='cotista'||fgtsOk)&&(b[5]!=='consig'||perfil.cons)); const best=el.slice().sort((a,b)=>a[1]-b[1])[0]; const esp=taxaEsperada(S.selic,'sbpe'), espC=taxaEsperada(S.selic,'caixa');
      return '<div class="comp"><div class="card"><h3>Qual o momento</h3><ol style="margin:0;padding-left:18px;line-height:1.7">'
       +'<li><b>Quando a diferença chegar a 1 ponto</b> entre a sua taxa e a menor que o seu perfil consegue. Hoje, na tabela: <b>'+esc(best[0])+' a '+fp(best[1],2)+'%</b> → diferença de <b>'+fp(S.taxa-best[1],2)+'pp</b> '+(S.taxa-best[1]>=1?'<span class="chip ok">já vale pedir</span>':'<span class="chip mid">ainda não</span>')+'.</li>'
       +'<li><b>Quanto antes, melhor.</b> No SAC os juros estão concentrados nos primeiros anos: a economia da linha "ano 1" é o teto; cada ano de espera a reduz.</li>'
-      +'<li><b>A Selic cair não basta</b> — o banco repassa com atraso e parcialmente (régua na seção 7). Acompanhe a tabela de bancos todo mês, não a Selic.</li>'
+      +'<li><b>A Selic cair não basta</b> — o banco repassa com atraso e parcialmente (veja a régua Selic → taxa, na seção de taxas de referência). Acompanhe a tabela de bancos todo mês, não a Selic.</li>'
       +'<li><b>Fora do primeiro ano</b> só compensa se o saldo ainda for grande (acima de R$ 200–300 mil) e faltar mais de 10 anos.</li></ol></div>'
       +'<div class="card"><h3>Taxa média de portabilidade e custo</h3><p style="margin:0 0 8px">Não existe "taxa de portabilidade": o banco que recebe usa a <b>mesma tabela de crédito novo</b>. Médias da tabela de referência hoje:</p><div class="strip">'
       +'<div class="tile"><small>SBPE grandes bancos</small><b>'+(mediaCat('sbpe')!=null?fp(mediaCat('sbpe'),2)+'%':'—')+'</b><span class="h">esperado p/ Selic '+fp(S.selic,2)+'%: '+fp(esp,1)+'%</span></div>'
@@ -306,21 +821,41 @@ function render(){
      return '<tr'+(Math.abs(b[1]-S.taxa)<0.02?' class="hla"':'')+'><td><b>'+esc(b[0])+'</b></td><td class="mono '+(b[1]<9.5?'pos':b[1]>11.5?'neg':'')+'"><b>'+fp(b[1],2)+'%</b></td><td><small>'+esc(b[2])+'</small></td><td class="mono '+(velho?'wr':'')+'">'+esc(b[3])+(velho?' <span class="chip mid">velho</span>':'')+'</td><td><small>'+esc(b[4])+'</small></td>'
       +'<td><button class="ghost sm" onclick="usar('+b[1]+')">usar</button></td></tr>';}).join('')
    +'</tbody></table></div>'
+   +gloss([['banco / linha','O banco e o tipo de crédito. "Pró-cotista" é a linha barata liberada para quem tem FGTS; "consignação" desconta direto da folha.'],
+     ['taxa (+TR)','Juros ao ano. O "+TR" é um índice extra que hoje está perto de zero, mas existe — por isso a taxa final pode sair um pouco acima da anunciada.'],
+     ['condição','O que você precisa cumprir para conseguir essa taxa.'],
+     ['data','Quando o dado foi publicado. <b>Taxa de crédito muda todo mês</b>: dado de mais de 3 meses vem marcado como velho.'],
+     ['fonte','De onde veio o número, para você conferir.']])
    +'<h3 style="margin-top:14px">Régua: se a Selic for X, que taxa esperar</h3>'
    +'<p class="meta">Reta calibrada em dois pontos reais — 2021 (Selic 2%, SBPE ~7,3%) e 2025/26 (Selic 15%, SBPE ~11,7%): taxa ≈ '+fp(P.finA,1)+' + '+fp(P.finB,2)+' × Selic. <b>É estimativa histórica, não regra do banco.</b> O banco repassa com meses de atraso. Parâmetros editáveis.</p>'
    +'<div class="scroll"><table><thead><tr><th class="mono">Selic</th><th class="mono">SBPE grandes bancos</th><th class="mono">Caixa</th><th class="mono">cooperativa</th><th class="mono">pró-cotista</th><th class="mono">servidor consignado</th></tr></thead><tbody>'
    +[7,8,9,10,11,12,13,13.75,14,15].map(x=>'<tr'+(Math.abs(x-S.selic)<0.4?' class="hl"':'')+'><td class="mono"><b>'+fp(x,2)+'%</b>'+(Math.abs(x-S.selic)<0.4?' <span class="chip">hoje</span>':'')+'</td>'+['sbpe','caixa','coop','cotista','consig'].map(c=>'<td class="mono">'+fp(taxaEsperada(x,c),1)+'%</td>').join('')+'</tr>').join('')
    +'</tbody></table></div>'
+   +gloss([['Selic','A taxa básica de juros do país, definida pelo Banco Central a cada 45 dias. Quando ela cai, todo o crédito tende a ficar mais barato — com atraso.'],
+     ['SBPE grandes bancos','A linha comum de financiamento, com dinheiro da poupança. É a taxa que a maioria das pessoas pega.'],
+     ['Caixa','Costuma ser a mais barata entre os grandes por ser o banco público do setor habitacional.'],
+     ['cooperativa','Sicoob, Sicredi e afins. Exigem que você vire associado (pagando uma cota), e a taxa varia por regional.'],
+     ['pró-cotista','Linha subsidiada para quem tem FGTS há 3 anos. É a mais barata do mercado quando você se qualifica.'],
+     ['servidor consignado','Servidor público com desconto em folha: o banco corre menos risco e cobra menos juros.']],'O que significa cada coluna da régua')
    +'<div class="note lj"><b>Sua taxa ('+fp(S.taxa,2)+'%) vs o esperado para Selic '+fp(S.selic,2)+'%:</b> SBPE '+fp(taxaEsperada(S.selic,'sbpe'),1)+'% · Caixa '+fp(taxaEsperada(S.selic,'caixa'),1)+'%. '+(S.taxa>taxaEsperada(S.selic,'sbpe')+0.5?'<b>Está acima do esperado — negocie ou troque de banco.</b>':S.taxa<taxaEsperada(S.selic,'caixa')-0.3?'<b>Está abaixo do esperado — boa taxa, segure.</b>':'Está na faixa esperada.')+'</div>'
    +'<div class="note warn"><b>Sobre cooperativas (Sicoob, Sicredi).</b> Os números são a média do Banco Central de agosto/2025 — quando a Selic estava a 15%. Cooperativa costuma ter taxa <b>um pouco abaixo dos bancos privados e acima da Caixa</b>, e exige associação (cota-parte) antes de contratar. Peça simulação na sua cooperativa local: a taxa varia por regional.</div>'
    +'<div class="note go"><b>Sobre servidor com consignação.</b> "A partir de 8%" é o que fontes de mercado citam; não achei tabela oficial. Vá à Caixa e ao BB com o contracheque e peça simulação nos dois — leve uma para pressionar a outra. A linha da tabela é <b>estimativa, marcada como tal</b>.</div>';
   /* --- 8. bairros --- */
   const cid=P.cidades[S.cidade]||P.cidades.Outra;
   html+='<h2>8. '+esc(S.cidade)+' — onde negociar</h2>'
+   +'<div class="card" style="margin-bottom:12px"><div class="grid"><div><label>Cidade</label><select id="cidade2">'+Object.keys(P.cidades).map(c=>'<option'+(c===S.cidade?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></div>'
+   +'<div><label>Variação 12 meses da cidade (%)</label><input id="cid_v" type="number" step="0.1" value="'+(cidV(S.cidade)!=null?cidV(S.cidade):'')+'" placeholder="não encontrado"></div>'
+   +'<div style="grid-column:span 2"><label>Fonte do dado da cidade</label><input id="cid_f" value="'+esc(P.cidades[S.cidade]?P.cidades[S.cidade].fonte:'')+'" placeholder="ex.: FipeZap set/2026"></div></div>'
+   +'<div style="margin-top:8px"><button class="sm" onclick="salvarCidade()">salvar cidade</button> <span class="meta">para criar uma cidade nova, use o painel de parâmetros no fim da página</span></div></div>'
    +(cid.var12!=null?'<p>A cidade variou <b>'+fp(cid.var12,2)+'% em 12 meses</b> ('+esc(cid.fonte)+'). '+(cid.var12>P.infl?'Acima da inflação: o mercado não está a favor do comprador. O desconto está em bairros e anúncios específicos, não na cidade.':'Abaixo da inflação: o mercado perdeu valor real.')+'</p>':'<p class="meta">variação da cidade: não encontrado — '+esc(cid.fonte)+'</p>')
    +(cid.bairros.length?'<div class="scroll"><table><thead><tr><th>bairro</th><th class="mono">R$/m²</th><th class="mono">12 meses</th><th>leitura</th><th>classe</th><th>praia / shopping</th></tr></thead><tbody>'
      +cid.bairros.map(([n,m2,v,cl,onde])=>'<tr'+(v!=null&&v<0?' class="hl"':v!=null&&v<P.infl?' class="hla"':'')+'><td><b>'+esc(n)+'</b></td><td class="mono">'+(m2!=null?fp(m2,0):'<span class="meta">não encontrado</span>')+'</td><td class="mono '+(v==null?'':v<0?'neg':v<P.infl?'wr':'pos')+'">'+(v!=null?(v>=0?'+':'')+fp(v,1)+'%':'<span class="meta">não encontrado</span>')+'</td>'
-      +'<td>'+(v==null?'—':v<0?'<span class="chip ok">caiu — pechinchar</span>':v<P.infl?'<span class="chip mid">perdeu p/ inflação</span>':'<span class="chip">subiu</span>')+'</td><td><small>'+esc(cl||'—')+'</small></td><td><small>'+esc(onde||'—')+'</small></td></tr>').join('')+'</tbody></table></div><p class="meta">classe e localização: leitura qualitativa do perfil predominante do bairro, não dado do FipeZap</p>':'<p class="meta">sem bairros cadastrados — adicione nos parâmetros</p>')
+      +'<td>'+(v==null?'—':v<0?'<span class="chip ok">caiu — pechinchar</span>':v<P.infl?'<span class="chip mid">perdeu p/ inflação</span>':'<span class="chip">subiu</span>')+'</td><td><small>'+esc(cl||'—')+'</small></td><td><small>'+esc(onde||'—')+'</small></td></tr>').join('')+'</tbody></table></div>'+gloss([['bairro','O bairro pesquisado.'],
+     ['R$/m²','Preço médio do metro quadrado ali. Multiplique pela metragem do imóvel para saber se o anúncio está caro ou barato.'],
+     ['12 meses','Quanto o preço do bairro subiu ou caiu no último ano.'],
+     ['leitura','Tradução do número: "caiu" = espaço para pechinchar; "perdeu p/ inflação" = subiu menos que os preços em geral, ou seja, ficou mais barato de verdade; "subiu" = mercado a favor do vendedor.'],
+     ['classe','Perfil predominante de renda do bairro. É leitura qualitativa, não estatística oficial.'],
+     ['praia / shopping','Onde fica e o que tem perto — o que costuma pesar na decisão de morar.']],'O que significa cada coluna')+'<p class="meta">classe e localização: leitura qualitativa do perfil predominante do bairro, não dado do FipeZap</p>':'<div class="note warn"><b>Nenhum bairro cadastrado em '+esc(S.cidade)+'.</b> Role até <b>Parâmetros</b> no fim da página e use "Adicionar bairro" — informe o bairro, o R$/m² do anúncio médio que você encontrar e, se souber, a variação de 12 meses. Sem isso a calculadora não inventa número: o resto da página funciona normalmente.</div>')
    +'<div class="note lj"><b>O critério do imóvel que ficou no preço antigo:</b> preço pedido ÷ metragem, comparado com o R$/m² do bairro. <b>10% ou mais abaixo</b> = vendedor que não acompanhou a alta. Esse é o desconto real, e existe mesmo com o mercado subindo. Bairros que caíram ou ficaram abaixo da inflação são onde o vendedor sabe que não tem o mercado a favor.</div>';
   /* --- 9. seguros --- */
   html+='<h2>9. Os seguros que vêm na parcela</h2>'
@@ -341,6 +876,12 @@ function render(){
    +'<tr><td><b>total, em R$ de hoje</b></td><td class="mono"><b>'+fk(cs.totH)+'</b></td><td class="mono"><b>'+fk(rF.ps.reduce((a,p,i)=>a+hoje(p,i/12),0)+entradaTot)+'</b></td></tr>'
    +'<tr><td>quando você tem o imóvel</td><td><b>só quando contemplado</b> — sorteio ou lance de '+fk(cs.lanceR)+' ('+C.lance+'%)</td><td><b>no dia 1</b></td></tr>'
    +'<tr><td>carta é corrigida?</td><td>sim, pelo INCC (aqui aproximado pela inflação)</td><td>—</td></tr></tbody></table></div>'
+   +gloss([['o que você paga além do bem','No consórcio é a taxa de administração + fundo de reserva, um percentual fixo. No financiamento são os juros + seguros, que crescem com o tempo.'],
+     ['1ª / última parcela','No consórcio a parcela <b>sobe</b> (a carta é corrigida). No financiamento SAC a parcela <b>cai</b>.'],
+     ['total pago, nominal','A soma bruta, sem considerar inflação.'],
+     ['total, em R$ de hoje','A soma trazida ao valor de hoje. <b>É por esta linha que se compara.</b>'],
+     ['quando você tem o imóvel','A diferença decisiva: no financiamento você recebe a chave no dia 1; no consórcio, só quando for sorteado ou der um lance vencedor.'],
+     ['lance','Um valor que você oferece adiantado para "furar a fila". Quem tem entrada grande costuma usá-la como lance.']],'O que significa cada linha desta comparação')
    +'<div class="note warn"><b>Leitura honesta.</b> O consórcio parece mais barato porque a taxa de administração ('+fp(C.adm,0)+'%) é menor que os juros acumulados. Mas a conta não mostra duas coisas: <b>(1)</b> você paga aluguel (ou fica sem o imóvel) até ser contemplado — anos, sem data; <b>(2)</b> quem tem entrada grande, como '+fk(entradaTot)+', usa esse dinheiro como lance e tende a ser contemplado cedo — aí o consórcio vira um financiamento sem juros. <b>Consórcio é para quem não tem pressa. Financiamento é para quem precisa morar agora.</b> Pergunte à administradora a <b>média de lance contemplado nos últimos 12 meses</b> do grupo — é o número que decide, e não é público.</div>'
    +'<h3>Taxas de administração anunciadas</h3><div class="scroll"><table><thead><tr><th>administradora</th><th class="mono">taxa adm. total</th><th class="mono">prazo</th><th class="mono">data</th><th>fonte</th></tr></thead><tbody>'
    +P.consAdm.map(a=>'<tr><td><b>'+esc(a[0])+'</b></td><td class="mono">'+esc(a[1])+'</td><td class="mono">'+esc(a[2])+'</td><td class="mono">'+esc(a[3])+'</td><td><small>'+esc(a[4])+'</small></td></tr>').join('')
@@ -348,7 +889,7 @@ function render(){
   /* --- 11. parâmetros --- */
   html+='<details class="sec"><summary>Parâmetros — edite para manter a calculadora viva</summary><div class="sc">'
    +'<div class="grid"><div><label>Inflação média (% a.a.)</label><input id="p_infl" type="number" step="0.1" value="'+P.infl+'"></div>'
-   +'<div><label>Sobra rende (% a.a., líquida) — vem da seção 3b</label><input id="p_invest" type="number" step="0.1" value="'+P.invest+'" disabled></div>'
+   +'<div><label>Sobra rende (% a.a., líquida) — vem de “Onde a sobra rende”</label><input id="p_invest" type="number" step="0.1" value="'+P.invest+'" disabled></div>'
    +'<div><label>Custo da portabilidade (R$)</label><input id="p_port" type="number" step="500" value="'+P.custoPort+'"></div>'
    +'<div><label>TR (% a.a., p/ poupança)</label><input id="p_tr" type="number" step="0.1" value="'+P.tr+'"></div>'
    +'<div><label>CDB — % do CDI</label><input id="p_cdb" type="number" step="5" value="'+P.inv.cdbPct+'"></div>'
@@ -358,40 +899,240 @@ function render(){
    +'<div><label>Outro — taxa líquida</label><input id="p_outro" type="number" step="0.1" value="'+P.inv.outro+'"></div>'
    +'<div><label>Régua Selic: intercepto</label><input id="p_fa" type="number" step="0.1" value="'+P.finA+'"></div>'
    +'<div><label>Régua Selic: inclinação</label><input id="p_fb" type="number" step="0.01" value="'+P.finB+'"></div>'
-   +'<div><label>Prazo de referência (anos)</label><select id="p_prazo">'+[20,25,30,35].map(a=>'<option'+(a===S.prazoRef?' selected':'')+'>'+a+'</option>').join('')+'</select></div></div>'
+   +'<div><label>Prazo de referência (anos)</label><select id="p_prazo">'+PRZ_OPC().map(a=>'<option'+(a===S.prazoRef?' selected':'')+'>'+a+'</option>').join('')+'</select></div></div>'
    +'<h3>Adicionar banco / atualizar taxa</h3><div class="grid"><div><label>Nome</label><input id="b_n" placeholder="Nubank"></div><div><label>Taxa %</label><input id="b_t" type="number" step="0.01"></div><div><label>Condição</label><input id="b_c" placeholder="SBPE"></div><div><label>Data (AAAA-MM)</label><input id="b_d" placeholder="2026-10"></div><div><label>Fonte</label><input id="b_f" placeholder="site"></div><div><label>Tipo</label><select id="b_k"><option value="sbpe">SBPE</option><option value="caixa">Caixa</option><option value="cotista">pró-cotista</option><option value="coop">cooperativa</option><option value="digital">digital</option><option value="consig">consignado</option></select></div></div>'
    +'<div style="margin-top:8px"><button class="sm" onclick="addBanco()">adicionar</button> <button class="ghost sm" onclick="resetP()">restaurar padrão</button> <span class="meta">padrão atualizado em '+esc(P.atualizado)+'</span></div>'
+   +'<h3>Regras do crédito — limites que o banco aplica</h3>'
+   +'<div class="grid"><div><label>LTV máximo SAC (%)</label><input id="r_sac" type="number" step="1" value="'+P.regras.ltvSac+'"></div>'
+   +'<div><label>LTV máximo Price (%)</label><input id="r_price" type="number" step="1" value="'+P.regras.ltvPrice+'"></div>'
+   +'<div><label>Idade + prazo máximo (anos)</label><input id="r_idade" type="number" step="0.5" value="'+P.regras.idadeMax+'"></div>'
+   +'<div><label>Teto do SFH (R$)</label><input id="r_sfh" type="number" step="50000" value="'+P.regras.tetoSfh+'"></div>'
+   +'<div><label>ITBI (% do imóvel)</label><input id="r_itbi" type="number" step="0.1" value="'+P.regras.itbi+'"></div>'
+   +'<div><label>Cartório (% do imóvel)</label><input id="r_cart" type="number" step="0.1" value="'+P.regras.cartorio+'"></div>'
+   +'<div><label>Avaliação do banco (R$)</label><input id="r_aval" type="number" step="100" value="'+P.regras.avaliacao+'"></div></div>'
+   +'<p class="meta" style="margin:6px 0 0">O ITBI muda por município — confira a alíquota da sua prefeitura e ajuste aqui.</p>'
+   +'<h3>Cidades — adicionar, trocar, remover</h3>'
+   +'<div class="scroll"><table><thead><tr><th>cidade</th><th class="mono">12 meses</th><th>fonte</th><th class="mono">bairros</th><th></th></tr></thead><tbody>'
+   +Object.keys(P.cidades).map(c=>'<tr'+(c===S.cidade?' class="hl"':'')+'><td><b>'+esc(c)+'</b>'+(c===S.cidade?' <span class="chip ok">em uso</span>':'')+'</td>'
+     +'<td class="mono">'+(P.cidades[c].var12!=null?(P.cidades[c].var12>=0?'+':'')+fp(P.cidades[c].var12,1)+'%':'<span class="meta">não encontrado</span>')+'</td>'
+     +'<td><small>'+esc(P.cidades[c].fonte||'—')+'</small></td><td class="mono">'+P.cidades[c].bairros.length+'</td>'
+     +'<td>'+(c===S.cidade?'':'<button class="ghost sm" onclick="irCidade('+JSON.stringify(c).replace(/"/g,'&quot;')+')">usar</button> ')
+     +(Object.keys(P.cidades).length>1?'<button class="ghost sm" onclick="delCidade('+JSON.stringify(c).replace(/"/g,'&quot;')+')">remover</button>':'')+'</td></tr>').join('')
+   +'</tbody></table></div>'
+   +'<div class="grid" style="margin-top:10px"><div><label>Nova cidade</label><input id="n_cid" placeholder="Olinda, Jaboatão, Campinas…"></div>'
+   +'<div><label>Variação 12m (%) — opcional</label><input id="n_cv" type="number" step="0.1"></div>'
+   +'<div style="grid-column:span 2"><label>Fonte — opcional</label><input id="n_cf" placeholder="FipeZap, imobiliária local, anúncios"></div></div>'
+   +'<div style="margin-top:8px"><button class="sm" onclick="addCidade()">criar cidade</button> <span class="meta">a cidade nova já entra no seletor da seção 8 e vira a cidade em uso</span></div>'
    +'<h3>Adicionar bairro em '+esc(S.cidade)+'</h3><div class="grid"><div><label>Bairro</label><input id="c_n"></div><div><label>R$/m²</label><input id="c_m" type="number"></div><div><label>Var. 12m (%)</label><input id="c_v" type="number" step="0.1"></div><div><label>Classe</label><input id="c_c" placeholder="média"></div><div><label>Praia / shopping</label><input id="c_o" placeholder="praia · shopping X"></div></div>'
-   +'<div style="margin-top:8px"><button class="sm" onclick="addBairro()">adicionar</button></div></div></details>';
-  document.getElementById('app').innerHTML=html;
-  document.getElementById('foot').innerHTML='<p><b>Fontes.</b> Taxas dos grandes bancos: <a href="https://myside.com.br/guia-imoveis/taxa-juros-financiamento-imobiliario" target="_blank" rel="noopener">MySide set/2026</a>. Cooperativas e Inter: <a href="https://www.idinheiro.com.br/financiamentos/imobiliario/melhor-taxa-financiamento-imobiliario/" target="_blank" rel="noopener">BCB ago/2025 via iDinheiro</a>. Servidor: <a href="https://finaqui.com.br/blog/financiamento-servidor-publico/" target="_blank" rel="noopener">Finaqui</a>. Comprovação de renda: <a href="https://www.cnnbrasil.com.br/economia/money/negocios/como-comprovar-renda-para-financiar-um-imovel-em-2026/" target="_blank" rel="noopener">CNN jul/2026</a>. FGTS: <a href="https://larya.com.br/blog/como-usar-fgts-para-financiamento-em-2026/" target="_blank" rel="noopener">Larya set/2026</a>. Selic 13,75% (Copom 16/09/2026): <a href="https://www.otempo.com.br/economia/2026/9/16/copom-corta-taxa-de-juros-em-0-25-p-p-pela-quinta-vez-consecutiva" target="_blank" rel="noopener">O Tempo</a>. Consórcio: <a href="https://www.idinheiro.com.br/consorcios/imobiliarios/consorcio-imobiliario-com-a-menor-taxa/" target="_blank" rel="noopener">iDinheiro jun/2026</a>. Portabilidade: <a href="https://www.cashme.com.br/blog/portabilidade-de-financiamento-imobiliario/" target="_blank" rel="noopener">CashMe</a>. MIP/DFI: <a href="https://parcelaimovel.com/blog/seguro-mip-dfi-no-financiamento/" target="_blank" rel="noopener">ParcelaImóvel</a>. Recife: <a href="https://myside.com.br/guia-imoveis/bairros-mais-caros-recife-pe" target="_blank" rel="noopener">FipeZap via MySide</a>. Piracicaba: <a href="https://www.friasneto.com.br/noticias/noticias-14/mercado-imobiliario-25/mercado-imobiliario-de-piracicaba-2026--panorama-completo-dados-e-tendencias-537" target="_blank" rel="noopener">Frias Neto 2026</a> (não coberta pelo FipeZap).</p>'
-   +'<p><b>Premissas.</b> SAC · seguros por faixa etária embutidos · renda acompanha a inflação · sobra investida em renda isenta · taxas futuras e a régua Selic→taxa são estimativa, não projeção oficial · investimentos: CDI ≈ Selic − 0,10pp, IR 15% acima de 2 anos, poupança pela regra legal · nada aqui é dado inventado: campo sem fonte mostra "não encontrado".</p>'
+   +'<div style="margin-top:8px"><button class="sm" onclick="addBairro()">adicionar</button> <span class="meta">bairro com o mesmo nome é substituído</span></div>'
+   +(P.cidades[S.cidade]&&P.cidades[S.cidade].bairros.length?'<p class="meta" style="margin:10px 0 4px">bairros em '+esc(S.cidade)+':</p><div>'
+     +P.cidades[S.cidade].bairros.map(b=>'<button class="ghost sm" style="margin:0 6px 6px 0" onclick="delBairro('+JSON.stringify(b[0]).replace(/"/g,'&quot;')+')">'+esc(b[0])+' ✕</button>').join('')+'</div>':'')
+   +'</div></details>';
+  fechar(SO_RES?null:FORM,html); bind(SO_RES);
+}
+function fechar(form,html){
+  /* índice automático a partir dos títulos */
+  let nsec=0; const tit=[];
+  const numerar=h=>h.replace(/<h2>([\s\S]*?)<\/h2>/g,(m,t)=>{ nsec++; const id='sec'+nsec; const lim=t.replace(/^\s*\d+[a-z]?\.\s*/,''); tit.push([id,lim]); return '<h2 id="'+id+'">'+nsec+'. '+lim+'</h2>'; });
+  if(form!==null)form=numerar(form);
+  html=numerar(html);
+  const NAVHTML='<nav id="indice"><h3>Índice — o que tem nesta página</h3><ol>'
+    +tit.map(([id,t])=>'<li><a href="#'+id+'">'+t.replace(/<[^>]+>/g,'')+'</a></li>').join('')
+    +'</ol><p class="meta" style="margin:10px 0 0">As seções com <b>＋</b> são consulta: ficam fechadas para a página respirar e abrem com um clique. Cada tabela tem um bloco <b>"O que significa cada coluna"</b>, e textos longos mostram a primeira frase com um <b>mais</b> ao lado.</p></nav>'
+    +'<div class="modo"><span>Textos e seções:</span><button class="ghost sm" onclick="modoTudo(true)">abrir tudo</button><button class="ghost sm" onclick="modoTudo(false)">fechar tudo</button></div>';
+  if(form!==null)form=NAVHTML+form; /* no render parcial o índice não muda: mantém o que está na tela */
+  if(form===null){ /* mantém em dia os campos que o formulário só exibe */
+    const rt=document.getElementById('rendaTotal');
+    if(rt)rt.value=fmt((+S.renda||0)+(S.comp||[]).reduce((a,b)=>a+(+b||0),0));
+  }
+  const app=document.getElementById('app');
+  if(form!==null){ app.innerHTML='<div id="frm">'+form+'</div><div id="res">'+html+'</div>'; }
+  else { const r=document.getElementById('res');
+    if(r){ r.innerHTML=html; r.classList.remove('flash'); void r.offsetWidth; r.classList.add('flash'); }
+    else app.innerHTML='<div id="res">'+html+'</div>'; }
+  dobrarSecoes(document.getElementById('res'));
+  condensar(document.getElementById('res'));
+  try{ if(localStorage.getItem('v2p-imovel-modo')==='tudo')modoTudo(true); }catch(e){}
+  if(form!==null)condensar(document.getElementById('frm'));
+  ligarTip();
+  rodape();
+}
+/* Deixa visível a primeira frase (a afirmação) e esconde o resto atrás de um
+   "mais". Nada é removido — só deixa de ocupar a tela de quem já entendeu. */
+const LIMITE_VISIVEL=135;
+function condensar(root){
+  (root||document).querySelectorAll('.note,.def').forEach(n=>{
+    if(n.dataset.cond)return; n.dataset.cond='1';
+    if(n.textContent.trim().length<=LIMITE_VISIVEL+60)return;
+    /* percorre os nós até passar do limite e achar um fim de frase */
+    let usado=0, corte=null;
+    const walk=no=>{
+      if(corte)return;
+      if(no.nodeType===3){
+        const t=no.nodeValue; 
+        for(let i=0;i<t.length;i++){
+          usado++;
+          if(usado>=LIMITE_VISIVEL&&/[.!?]/.test(t[i])&&(i+1>=t.length||/\s/.test(t[i+1]))){ corte={no,i:i+1}; return; }
+        }
+      } else if(no.nodeType===1){ for(const f of Array.from(no.childNodes)){ walk(f); if(corte)return; } }
+    };
+    Array.from(n.childNodes).forEach(f=>walk(f));
+    if(!corte)return;
+    /* garante que o corte está num filho direto (senão não dá para separar) */
+    let alvo=corte.no; while(alvo.parentNode&&alvo.parentNode!==n)alvo=alvo.parentNode;
+    const idx=Array.from(n.childNodes).indexOf(alvo);
+    if(idx<0||idx>=n.childNodes.length-1)return;
+    if(corte.no.parentNode===n&&corte.i<corte.no.nodeValue.length){ corte.no.splitText(corte.i); }
+    const resto=document.createElement('span'); resto.className='resto';
+    const apos=Array.from(n.childNodes).slice(Array.from(n.childNodes).indexOf(corte.no.parentNode===n?corte.no:alvo)+1);
+    if(!apos.length)return;
+    apos.forEach(f=>resto.appendChild(f));
+    if(resto.textContent.trim().length<40){ while(resto.firstChild)n.appendChild(resto.firstChild); return; }
+    const bt=document.createElement('button'); bt.className='maisLink'; bt.type='button'; bt.textContent='mais ⌄';
+    bt.onclick=()=>{ const on=resto.classList.toggle('on'); bt.textContent=on?'menos ⌃':'mais ⌄'; };
+    n.appendChild(resto); n.appendChild(bt);
+  });
+}
+/* seções de consulta: viram uma linha com a conclusão, abrem com um clique */
+function resumoSecao(t){
+  const k=[
+   [/SAC ou Price/i,'SAC tem parcela que cai e juros menores; Price tem parcela fixa, aprova mais fácil e custa mais. Abra para a comparação com os seus números.'],
+   [/curva, com o mesmo desembolso/i,'A mesma conta da recomendação, fixando o seu prazo, para isolar só o efeito da entrada.'],
+   [/Portabilidade/i,'Quando trocar de banco compensa, quanto se economiza em cada ano do contrato e quanto custa mudar.'],
+   [/Taxas de referência/i,'Tabela de bancos com data e fonte, mais a régua de quanto esperar para cada nível de Selic.'],
+   [/onde negociar/i,'Preço por m² do bairro, variação em 12 meses, perfil e localização — e o critério do imóvel que ficou no preço antigo.'],
+   [/seguros/i,'MIP e DFI: o que cobrem, quanto custam por faixa de idade e por que podem ser contratados fora do banco.'],
+   [/Consórcio/i,'Sem juros, mas com taxa de administração e sem data de entrega. Comparação lado a lado com o financiamento.'],
+   [/Onde a sobra rende/i,'Poupança, Tesouro, CDB, LCI, FI-Infra e debênture calculados a partir da Selic que você digitou.']
+  ];
+  for(const [re,txt] of k)if(re.test(t))return txt;
+  return null;
+}
+function dobrarSecoes(root){
+  const cont=root||document.getElementById('res'); if(!cont)return;
+  const filhos=Array.from(cont.children);
+  let i=0;
+  while(i<filhos.length){
+    const el=filhos[i];
+    if(el.tagName==='H2'){
+      const resumo=resumoSecao(el.textContent);
+      if(resumo){
+        const bloco=[el]; let j=i+1;
+        while(j<filhos.length&&filhos[j].tagName!=='H2'){ bloco.push(filhos[j]); j++; }
+        const d=document.createElement('details'); d.className='secD';
+        const sm=document.createElement('summary');
+        sm.innerHTML='<h2>'+el.textContent+'</h2><span class="tl">'+resumo+'</span>';
+        const sd=document.createElement('div'); sd.className='sd';
+        bloco.forEach(b=>sd.appendChild(b));
+        d.appendChild(sm); d.appendChild(sd);
+        cont.insertBefore(d,filhos[j]||null);
+        /* o índice precisa continuar levando até aqui */
+        d.id=el.id; el.removeAttribute('id');
+        d.addEventListener('toggle',()=>{ if(d.open)d.scrollIntoView({block:'nearest'}); });
+        i=j; continue;
+      }
+    }
+    i++;
+  }
+  /* âncoras do índice abrem a seção antes de rolar */
+  document.querySelectorAll('#indice a').forEach(a=>{
+    a.onclick=ev=>{ const alvo=document.querySelector(a.getAttribute('href'));
+      if(alvo&&alvo.tagName==='DETAILS'&&!alvo.open){ alvo.open=true; } };
+  });
+}
+function modoTudo(abrir){
+  document.querySelectorAll('.secD,details.ler,details.gloss').forEach(d=>d.open=abrir);
+  document.querySelectorAll('.resto').forEach(r=>r.classList.toggle('on',abrir));
+  document.querySelectorAll('.maisLink').forEach(b=>b.textContent=abrir?'menos ⌃':'mais ⌄');
+  try{localStorage.setItem('v2p-imovel-modo',abrir?'tudo':'resumo');}catch(e){}
+}
+function ligarTip(){
+  let t=document.getElementById('tip');
+  if(!t){ t=document.createElement('div'); t.id='tip'; t.className='tip'; document.body.appendChild(t); }
+  document.querySelectorAll('svg .hv rect').forEach(r=>{
+    r.onmouseenter=r.onmousemove=ev=>{ t.innerHTML=r.getAttribute('data-tip'); t.style.display='block';
+      const b=t.getBoundingClientRect(); let x=ev.clientX+14, y=ev.clientY-10;
+      if(x+b.width>innerWidth-8)x=ev.clientX-b.width-14; if(y<8)y=8;
+      t.style.left=x+'px'; t.style.top=y+'px'; };
+    r.onmouseleave=()=>{ t.style.display='none'; };
+  });
+}
+function rodape(){
+  document.getElementById('foot').innerHTML='<p><b>Fontes.</b> Taxas dos grandes bancos: <a href="https://myside.com.br/guia-imoveis/taxa-juros-financiamento-imobiliario" target="_blank" rel="noopener">MySide set/2026</a>. Cooperativas e Inter: <a href="https://www.idinheiro.com.br/financiamentos/imobiliario/melhor-taxa-financiamento-imobiliario/" target="_blank" rel="noopener">BCB ago/2025 via iDinheiro</a>. Servidor: <a href="https://finaqui.com.br/blog/financiamento-servidor-publico/" target="_blank" rel="noopener">Finaqui</a>. Comprovação de renda: <a href="https://www.cnnbrasil.com.br/economia/money/negocios/como-comprovar-renda-para-financiar-um-imovel-em-2026/" target="_blank" rel="noopener">CNN jul/2026</a>. FGTS: <a href="https://larya.com.br/blog/como-usar-fgts-para-financiamento-em-2026/" target="_blank" rel="noopener">Larya set/2026</a>. Selic 13,75% (Copom 16/09/2026): <a href="https://www.otempo.com.br/economia/2026/9/16/copom-corta-taxa-de-juros-em-0-25-p-p-pela-quinta-vez-consecutiva" target="_blank" rel="noopener">O Tempo</a>. Consórcio: <a href="https://www.idinheiro.com.br/consorcios/imobiliarios/consorcio-imobiliario-com-a-menor-taxa/" target="_blank" rel="noopener">iDinheiro jun/2026</a>. Margem consignável do servidor federal (45%, Lei 14.509/2022): <a href="https://www12.senado.leg.br/noticias/materias/2022/12/28/aumento-do-consignado-de-servidores-federais-vira-lei" target="_blank" rel="noopener">Agência Senado</a>. Entrada mínima, ITBI e cartório: <a href="https://larya.com.br/blog/financiamento-caixa-imovel-usado/" target="_blank" rel="noopener">Larya ago/2026</a>. Idade + prazo (80 anos e 6 meses): <a href="https://larya.com.br/blog/idade-minima-e-maxima-para-financiar-imovel-existe-limite/" target="_blank" rel="noopener">Larya ago/2026</a>. Teto do SFH e regras do FGTS: <a href="https://valorfinal.com.br/guia/fgts-na-compra-do-imovel" target="_blank" rel="noopener">Valor Final jul/2026</a> (Lei 8.036/1990, art. 20). Portabilidade: <a href="https://www.cashme.com.br/blog/portabilidade-de-financiamento-imobiliario/" target="_blank" rel="noopener">CashMe</a>. MIP/DFI: <a href="https://parcelaimovel.com/blog/seguro-mip-dfi-no-financiamento/" target="_blank" rel="noopener">ParcelaImóvel</a>. Recife: <a href="https://myside.com.br/guia-imoveis/bairros-mais-caros-recife-pe" target="_blank" rel="noopener">FipeZap via MySide</a>. Piracicaba: <a href="https://www.friasneto.com.br/noticias/noticias-14/mercado-imobiliario-25/mercado-imobiliario-de-piracicaba-2026--panorama-completo-dados-e-tendencias-537" target="_blank" rel="noopener">Frias Neto 2026</a> (não coberta pelo FipeZap).</p>'
+   +'<p><b>Premissas.</b> SAC · seguros por faixa etária embutidos · renda acompanha a inflação · sobra investida em renda isenta · projeção longa usa taxa real contratável hoje num IPCA+ longo, não a taxa de curto prazo congelada · taxas futuras e a régua Selic→taxa são estimativa, não projeção oficial · investimentos: CDI ≈ Selic − 0,10pp, IR 15% acima de 2 anos, poupança pela regra legal · nada aqui é dado inventado: campo sem fonte mostra "não encontrado".</p>'
    +'<p><b>O que isto não é.</b> Não é aprovação de crédito, não substitui a simulação do banco nem a análise jurídica do imóvel. A regra de 25/30% é prudência, não exigência bancária. <b>A conta é pública; a decisão é sua.</b></p>'
    +'<p style="margin-top:12px">V2P Investing · a conta é pública, a decisão é humana.</p>';
-  bind();
 }
 let LIVE=null;
-function bind(){
+function bind(soRes){
   const g=id=>document.getElementById(id);
-  ['perfil','fgts','cidade','p_prazo'].forEach(id=>{const el=g(id); if(el)el.onchange=()=>{ if(id==='perfil'){S.perfil=el.value; S.fgts=P.perfis[S.perfil].fgts;} else if(id==='fgts')S.fgts=el.value==='1'; else if(id==='cidade')S.cidade=el.value; else S.prazoRef=+el.value; saveS(); render(); };});
-  /* recálculo ao vivo: qualquer campo numérico atualiza a página inteira */
-  document.querySelectorAll('#app input[type=number]').forEach(el=>{ el.oninput=()=>{ clearTimeout(LIVE); LIVE=setTimeout(()=>calc(true),350); }; });
-  if(FOC){ const el=g(FOC.id); if(el){ el.focus(); try{el.setSelectionRange(FOC.a,FOC.b);}catch(e){} } FOC=null; }
+  ['perfil','fgts','cidade','cidade2','p_prazo','sistema','primeiro','usarLongo','custosFin'].forEach(id=>{const el=g(id); if(el)el.onchange=()=>{ lerCampos(); if(id==='perfil'){S.perfil=el.value; S.fgts=P.perfis[S.perfil].fgts;} else if(id==='fgts')S.fgts=el.value==='1'; else if(id==='cidade'||id==='cidade2')S.cidade=el.value; else if(id==='sistema')S.sistema=el.value; else if(id==='primeiro')S.primeiro=el.value==='1'; else if(id==='usarLongo')S.usarLongo=el.value==='1'; else if(id==='custosFin')S.custosFin=el.value==='1'; else S.prazoRef=+el.value; saveS(); render(); };});
+  /* recálculo ao vivo — só a área de resultados é redesenhada, os campos ficam intactos */
+  if(!soRes)ligarCampos();
+  document.querySelectorAll('#res input[type=number], #res input[data-moeda], #res input[data-pct]').forEach(el=>{
+    if(el.dataset.lig)return; el.dataset.lig='1';
+    el.oninput=()=>{ clearTimeout(LIVE); LIVE=setTimeout(()=>calc(true),400); };
+  });
 }
-let FOC=null;
-function guardarFoco(){ const a=document.activeElement; if(a&&a.id&&a.tagName==='INPUT'){ FOC={id:a.id,a:a.selectionStart,b:a.selectionEnd}; } }
+function ligarCampos(){
+  document.querySelectorAll('#frm input').forEach(el=>{
+    if(el.disabled||el.dataset.lig)return; el.dataset.lig='1';
+    const moeda=el.dataset.moeda==='1', pct=el.dataset.pct==='1';
+    /* seleciona tudo ao focar: digitar por cima substitui, em vez de brigar com o zero */
+    el.onfocus=()=>{ try{el.select();}catch(e){} el.dataset.sel='1'; };
+    el.onmouseup=ev=>{ if(el.dataset.sel==='1'){ ev.preventDefault(); el.dataset.sel=''; } };
+    el.onblurcapture=null;
+    el.oninput=()=>{
+      if(moeda){ const d=el.value.replace(/[^\d]/g,''); const fim=el.selectionStart>=el.value.length;
+        const novo=d===''?'':(+d).toLocaleString('pt-BR');
+        if(novo!==el.value){ el.value=novo; if(fim)el.setSelectionRange(novo.length,novo.length); } }
+      clearTimeout(LIVE); LIVE=setTimeout(()=>calc(true),400);
+    };
+    el.onblur=()=>{
+      el.dataset.sel='';
+      if(moeda)el.value=nfMil(parseMil(el.value));
+      if(pct){ const v=parsePct(el.value); el.value=v==null?el.value:String(v).replace('.',','); }
+      calc(true);
+    };
+    /* setas ↑ ↓ ajustam o valor, como num campo numérico */
+    el.onkeydown=ev=>{
+      if(ev.key!=='ArrowUp'&&ev.key!=='ArrowDown')return;
+      ev.preventDefault();
+      const dir=ev.key==='ArrowUp'?1:-1;
+      if(moeda){ const base=parseMil(el.value); const passo=ev.shiftKey?10000:(base>=100000?10000:base>=10000?1000:100);
+        el.value=nfMil(Math.max(0,base+dir*passo)); }
+      else if(pct){ const st=+el.dataset.step||0.1, v=parsePct(el.value)||0;
+        el.value=String(+(v+dir*st).toFixed(4)).replace('.',','); }
+      else { el.value=String((+el.value||0)+dir); }
+      clearTimeout(LIVE); LIVE=setTimeout(()=>calc(true),250);
+    };
+  });
+}
+function lerCampos(){
+  const el=id=>document.getElementById(id);
+  const gM=(id,cur)=>{ const e=el(id); return e?parseMil(e.value):cur; };
+  const gP=(id,cur)=>{ const e=el(id); if(!e)return cur; const v=parsePct(e.value); return v==null?cur:v; };
+  const gN=(id,cur)=>{ const e=el(id); if(!e||e.value==='')return cur; const v=+e.value; return isNaN(v)?cur:v; };
+  S.renda=gM('renda',S.renda); S.comp=[gM('comp0',S.comp[0]||0),gM('comp1',S.comp[1]||0)];
+  S.valor=gM('valor',S.valor); S.caixa=gM('caixa',S.caixa); S.entrada=gM('entrada',S.entrada);
+  S.fgtsEnt=gM('fgtsEnt',S.fgtsEnt); S.aporte=gM('aporte',S.aporte);
+  S.taxa=gP('taxa',S.taxa); S.taxaPort=gP('taxaPort',S.taxaPort); S.selic=gP('selic',S.selic);
+  S.idade=Math.min(79,Math.max(18,gN('idade',S.idade)));
+}
 function calc(aoVivo){
   const g=id=>+document.getElementById(id).value||0;
-  S.renda=g('renda'); S.comp=[g('comp0'),g('comp1')]; S.valor=g('valor'); S.caixa=g('caixa'); S.entrada=g('entrada');
-  S.fgtsEnt=g('fgtsEnt'); S.taxa=g('taxa'); S.taxaPort=g('taxaPort'); S.idade=g('idade'); if(g('selic')>0)S.selic=g('selic');
+  lerCampos();
   const pi=document.getElementById('p_infl'), pv=document.getElementById('p_invest'), pp=document.getElementById('p_port');
   if(pi&&+pi.value>=0)P.infl=+pi.value; if(pv&&+pv.value>0)P.invest=+pv.value; if(pp&&+pp.value>=0)P.custoPort=+pp.value;
   const gv=(id,cur)=>{const e=document.getElementById(id); return e&&e.value!==''?+e.value:cur;};
   if(document.getElementById('k_adm'))P.cons={adm:gv('k_adm',P.cons.adm),fr:gv('k_fr',P.cons.fr),meses:gv('k_m',P.cons.meses)||200,lance:gv('k_l',P.cons.lance)};
+  P.regras.ltvSac=gv('r_sac',P.regras.ltvSac); P.regras.ltvPrice=gv('r_price',P.regras.ltvPrice); P.regras.idadeMax=gv('r_idade',P.regras.idadeMax);
+  P.regras.tetoSfh=gv('r_sfh',P.regras.tetoSfh); P.regras.itbi=gv('r_itbi',P.regras.itbi); P.regras.cartorio=gv('r_cart',P.regras.cartorio); P.regras.avaliacao=gv('r_aval',P.regras.avaliacao);
+  P.longoReal=gv('p_longo',P.longoReal); { const e=document.getElementById('p_longoF'); if(e&&e.value)P.longoFonte=e.value; }
   P.tr=gv('p_tr',P.tr); P.inv.cdbPct=gv('p_cdb',P.inv.cdbPct); P.inv.lciPct=gv('p_lci',P.inv.lciPct); P.inv.fiReal=gv('p_fi',P.inv.fiReal); P.inv.debReal=gv('p_deb',P.inv.debReal); P.inv.outro=gv('p_outro',P.inv.outro); P.finA=gv('p_fa',P.finA); P.finB=gv('p_fb',P.finB);
   if(S.invTipo!=='outro'){ const t=invTipos(S.selic).find(t=>t.k===S.invTipo); if(t)P.invest=+t.liq.toFixed(2); } else P.invest=P.inv.outro;
-  saveS(); saveP(); if(aoVivo)guardarFoco(); render();
-  if(!aoVivo)window.scrollTo({top:document.querySelector('h2:nth-of-type(4)')?.offsetTop-20||0,behavior:'smooth'});
+  saveS(); saveP(); render(aoVivo?'parcial':'total');
+  if(!aoVivo)window.scrollTo({top:document.getElementById('sec5')?.offsetTop-20||0,behavior:'smooth'});
 }
 function usar(t){ S.taxa=t; saveS(); render(); }
 function usarInv(k){ S.invTipo=k; const t=invTipos(S.selic).find(t=>t.k===k); if(t)P.invest=+t.liq.toFixed(2); saveS(); saveP(); render(); }
@@ -399,6 +1140,15 @@ function calcCons(){ const g=id=>+document.getElementById(id).value||0; P.cons={
 function limpar(){ S=Object.assign({},S0); saveS(); render(); }
 function addBanco(){ const g=id=>document.getElementById(id).value; if(!g('b_n')||!(+g('b_t')>0))return;
   P.bancos.push([g('b_n'),+g('b_t'),g('b_c')||'—',g('b_d')||new Date().toISOString().slice(0,7),g('b_f')||'—',g('b_k')||'sbpe']); saveP(); render(); }
+function irCidade(c){ S.cidade=c; saveS(); render(); }
+function addCidade(){ const g=id=>document.getElementById(id); const n=(g('n_cid').value||'').trim(); if(!n)return;
+  if(!P.cidades[n])P.cidades[n]={var12:g('n_cv').value!==''?+g('n_cv').value:null,fonte:g('n_cf').value||'preencha com dado local',bairros:[]};
+  S.cidade=n; saveP(); saveS(); render(); }
+function delCidade(c){ if(Object.keys(P.cidades).length<2)return; if(!confirm('Remover a cidade "'+c+'" e os bairros dela?'))return;
+  delete P.cidades[c]; if(S.cidade===c)S.cidade=Object.keys(P.cidades)[0]; saveP(); saveS(); render(); }
+function salvarCidade(){ const g=id=>document.getElementById(id); const c=P.cidades[S.cidade]; if(!c)return;
+  c.var12=g('cid_v').value!==''?+g('cid_v').value:null; c.fonte=g('cid_f').value||'preencha com dado local'; saveP(); render(); }
+function delBairro(n){ const c=P.cidades[S.cidade]; c.bairros=c.bairros.filter(b=>b[0]!==n); saveP(); render(); }
 function addBairro(){ const g=id=>document.getElementById(id).value; if(!g('c_n'))return;
   const c=P.cidades[S.cidade]; c.bairros=c.bairros.filter(b=>b[0]!==g('c_n')); c.bairros.push([g('c_n'),+g('c_m')||null,g('c_v')!==''?+g('c_v'):null,g('c_c')||'',g('c_o')||'']); saveP(); render(); }
 function toggleTema(){ const r=document.documentElement; const cur=r.getAttribute('data-theme'); const nxt=cur==='dark'?'light':(cur==='light'?'dark':(matchMedia('(prefers-color-scheme:dark)').matches?'light':'dark')); r.setAttribute('data-theme',nxt); try{localStorage.setItem('v2p-tema',nxt);}catch(e){} }
@@ -406,5 +1156,4 @@ try{const t=localStorage.getItem('v2p-tema'); if(t)document.documentElement.setA
 render();
 </script>
 
-</body>
-</html>
+</body></html>
