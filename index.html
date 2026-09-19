@@ -173,7 +173,7 @@ const DEF={
   longoReal:7.19, longoFonte:'Tesouro IPCA+ 2050, taxa de compra em 2026-09-18 (Tesouro Transparente)',
   regras:{ ltvSac:80, ltvPrice:70, ltvMcmv:90, idadeMax:80.5, prazoMaxMeses:420,
            tetoSfh:2250000, tetoMcmv:600000, itbi:3.0, cartorio:1.5, avaliacao:3100, desc1oImovel:50 },
-  inv:{ cdbPct:100, lciPct:90, tesSpread:0.10, tesCust:0.20, ir:15, fiReal:7.5, debReal:8.0, outro:11.5 },
+  inv:{ cdbPct:100, lciPct:90, tesSpread:0.10, tesCust:0.20, ir:15, fiReal:7.5, debReal:8.77, outro:11.5 },
   /* julgamentos que estavam cravados no codigo. Nao sao fatos: sao regras
      de bolso, e por isso ficam editaveis (regra 7 do projeto). */
   limConf:25, limTeto:30, ruido:2,
@@ -531,6 +531,22 @@ function render(modo){
      :'Você escolheu um papel <b>IPCA + taxa real</b>. Aqui a taxa real é contratada: se você comprar e carregar até o vencimento, ela não depende da Selic. ')
    +'A referência honesta para prazo longo é o que o mercado paga <b>hoje</b> para travar taxa real por décadas: o Tesouro IPCA+ 2045 está em <b>IPCA + '+fp(P.longoReal,2)+'%</b>. É esse o número que uso por padrão. '
    +'<b>Projeção em uso: '+fp(realProj(),2)+'% reais ao ano</b> ('+fp(nomProj(),2)+'% nominais com inflação de '+fp(P.infl,1)+'%)'+(S.usarLongo?'.':' — <b>é a taxa de hoje, congelada por '+HORIZ_TXT()+'. Trate o resultado como teto, não como previsão.</b>')+'</div></div>'
+   +'<div class="def"><b>Três taxas aparecem nesta página. Elas não são a mesma coisa, e trocar uma pela outra muda tudo.</b></div>'
+   +'<div class="scroll"><table><thead><tr><th>taxa</th><th>o que é</th><th>tipo de ativo</th><th>de onde vem</th></tr></thead><tbody>'
+   +'<tr class="hl"><td class="mono"><b>IPCA + '+fp(P.longoReal,2)+'%</b></td>'
+     +'<td><b>Premissa de projeção</b> — o que esta página assume que o dinheiro rende, em média, pelos '+HORIZ_TXT()+' inteiros, reinvestindo.</td>'
+     +'<td>Título público, sem risco de crédito</td>'
+     +'<td>'+esc(P.longoFonte)+'. É a única taxa real que dá para <b>travar hoje</b> por décadas.</td></tr>'
+   +'<tr><td class="mono"><b>IPCA + '+fp(P.inv.debReal,2)+'%</b></td>'
+     +'<td><b>Referência de mercado</b> — o que uma debênture incentivada paga hoje. Serve para você conferir se a taxa que te ofereceram é boa.</td>'
+     +'<td>Debênture incentivada (crédito privado, isenta de IR)</td>'
+     +'<td>Mediana de 13 debêntures incentivadas acompanhadas em <b>16/09/2026</b>. A faixa vai de IPCA+6,68% (CRI Petrobras) a IPCA+13,03% (JSL) — taxa maior é empresa com mais risco, não almoço grátis.</td></tr>'
+   +'<tr><td class="mono"><b>IPCA + 11%</b></td>'
+     +'<td><b>Alvo de compra</b> — o piso abaixo do qual não vale comprar. É um <b>filtro de entrada</b>, não uma expectativa.</td>'
+     +'<td>Debênture incentivada</td>'
+     +'<td>Critério de carteira, não dado de mercado. <b>Usar isto como premissa de projeção seria supor que todo ativo futuro acerta o melhor caso.</b> Das 19 posições acompanhadas, só 3 pagam 11% ou mais.</td></tr>'
+   +'</tbody></table></div>'
+   +'<div class="note warn"><b>A confusão que isso evita.</b> Alvo de compra é o que você exige <i>na hora de comprar um papel específico</i>. Premissa de projeção é o que você espera ganhar <i>na média de tudo, por décadas, reinvestindo ao que o mercado pagar naquele dia</i>. A segunda é sempre menor que a primeira — e tem de ser, senão a conta mente a seu favor. <b>Por isso a projeção desta página usa '+fp(P.longoReal,2)+'%, e não 11%.</b></div>'
    +'<div class="note lj"><b>Como ler.</b> Verde = rende mais que a sua taxa de financiamento ('+fp(S.taxa,2)+'%): financiar mais e investir a sobra ganha. Vermelho = perde: cada real financiado custa mais do que rende. <b>Poupança, Tesouro Selic, CDB e LCI acompanham a Selic</b> — quando ela cai, caem juntos. <b>FI-Infra e debênture incentivada são IPCA + taxa real</b>: não seguem a Selic, por isso a taxa real deles é campo editável, não fórmula.</div>';
   if(!ok){ html+='<div class="note stop"><b>Falta ajustar '+(probs.length>1?'estes campos':'este campo')+' para eu calcular o resto:</b><ul style="margin:8px 0 0;padding-left:20px;line-height:1.7">'
     +probs.map(t=>'<li>'+t+'</li>').join('')+'</ul><p style="margin:10px 0 0">O restante da página (parcelas, curva de entrada, portabilidade, bancos, cidade, seguros e consórcio) aparece assim que isso for resolvido — nada foi perdido.</p></div>';
