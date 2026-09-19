@@ -339,7 +339,15 @@ function svgLinha(cfg){
    proporcional ao valor, sem exagerar diferenca pequena.
 --------------------------------------------------------------------- */
 function svgBarras(cfg){
-  const it=cfg.itens, h=cfg.h||34, ml=cfg.ml||150, mr=cfg.mr||130, W=760;
+  /* a largura da margem direita sai do texto mais comprido que vai ser
+     escrito ali: rotulo fixo estourava a caixa quando o valor era longo. */
+  const it=cfg.itens, h=cfg.h||36;
+  const larg=function(txt){ return String(txt||'').length*7.1; };
+  const maiorDir=Math.max.apply(null,it.map(function(x){
+    return larg(cfg.fmtV(x.val)+(x.nota?'  '+x.nota:'')); }).concat([90]));
+  const maiorEsq=Math.max.apply(null,it.map(function(x){ return larg(x.rot); }).concat([100]));
+  const ml=Math.ceil(maiorEsq)+16, mr=Math.ceil(maiorDir)+22;
+  const W=Math.max(760, ml+mr+240);
   const H=it.length*h+14;
   const max=Math.max.apply(null,it.map(function(x){return Math.abs(x.val);}).concat([1]));
   var g='';
@@ -797,25 +805,25 @@ function render(modo){
    /* mostra a VANTAGEM sobre o pior cenario: assim a barra parte do zero de
       verdade e a diferenca aparece no tamanho real, sem eixo cortado. */
    html+=figura('Quanto cada entrada rende a mais que a pior delas',
-     'Cada barra é um <b>cenário</b>, não um ano — por isso barra e não linha. Todos financiam em '+sug.anos+' anos e gastam '+fmt(orc)+' por mês. A barra mede <b>quanto aquele cenário termina acima do pior</b>, para a comparação começar no zero e não em eixo cortado.',
+     'Cada barra é um <b>cenário</b>, não um ano — por isso barra e não linha. Todos financiam em '+sug.anos+' anos e gastam '+fmt(orc)+' por mês. A barra mede <b>quanto aquele cenário termina acima do pior</b>, para a comparação começar no zero. <b>Aqui, barra maior é melhor</b> — mas veja o tamanho da diferença antes de decidir por ela.',
      svgBarras({itens:curva.map(function(x){
         const ehSua=x[0]===xSua, ehSug=x[0]===xSug;
-        const rot=(ehSua&&ehSug)?'← a sua e a sugerida':(ehSug?'← sugerida':(ehSua?'← a sua':''));
-        return {rot:'entrada '+fk(x[0]), val:x[1]-piorC, cor:ehSug?C2:(ehSua?C1:'var(--line2)'),
-                marca:ehSua||ehSug, nota:rot};}), fmtV:fk}),
+        const m=(ehSua&&ehSug)?'  ◀ a sua e a sugerida':(ehSug?'  ◀ sugerida':(ehSua?'  ◀ a sua':''));
+        return {rot:'entrada '+fk(x[0])+m, val:x[1]-piorC, cor:ehSug?C2:(ehSua?C1:'var(--line2)'),
+                marca:ehSua||ehSug};}), fmtV:fk}),
      null, null,
      '<ul><li><b>Barra maior = mais patrimônio no fim.</b> A barra mede a distância até o pior cenário da lista, então a menor sempre fica em zero.</li>'
       +'<li><b>A diferença inteira é de '+fk(melhorC-piorC)+'</b>, ou '+fp((melhorC/piorC-1)*100,1)+'% — depois de '+HOR+' anos. É pouco, e é essa a informação principal deste gráfico: <b>o tamanho da entrada quase não muda o resultado final</b>.</li>'
       +'<li><b>Por isso a sugestão não é a barra maior.</b> Quando a diferença de patrimônio é ruído, o que decide é outra coisa — a parcela que você assume todo mês. Veja o gráfico seguinte.</li>'
       +'<li><b>Não é o tempo passando.</b> Andar para baixo na lista é dar mais entrada, não esperar mais anos.</li></ul>');
    /* ---- o outro lado da moeda: a parcela que cada cenario obriga ---- */
-   html+=figura('E quanto cada entrada obriga você a pagar por mês',
-     'As mesmas linhas do gráfico acima, medindo agora a <b>primeira parcela</b> — o valor que vira obrigação contratual por '+sug.anos+' anos. Aqui a ordem se inverte.',
+   html+=figura('E quanto cada entrada obriga você a pagar por mês — aqui, barra menor é melhor',
+     'Os mesmos cenários do gráfico acima, medindo agora a <b>primeira parcela</b>: o valor que vira obrigação contratual por '+sug.anos+' anos. <b>Atenção — a leitura inverte:</b> no gráfico de cima, barra maior era melhor; aqui, <b>barra menor é melhor</b>, porque menos parcela é menos obrigação.',
      svgBarras({itens:curva.map(function(x){
         const ehSua=x[0]===xSua, ehSug=x[0]===xSug;
-        const rot=(ehSua&&ehSug)?' ← a sua e a sugerida':(ehSug?' ← sugerida':(ehSua?' ← a sua':''));
-        return {rot:'entrada '+fk(x[0]), val:x[2], cor:ehSug?C2:(ehSua?C1:'var(--line2)'),
-                marca:ehSua||ehSug, nota:fp(x[2]/rendaTot*100,0)+'% da renda'+rot};}), fmtV:fmt}),
+        const m=(ehSua&&ehSug)?'  ◀ a sua e a sugerida':(ehSug?'  ◀ sugerida':(ehSua?'  ◀ a sua':''));
+        return {rot:'entrada '+fk(x[0])+m, val:x[2], cor:ehSug?C2:(ehSua?C1:'var(--line2)'),
+                marca:ehSua||ehSug, nota:fp(x[2]/rendaTot*100,0)+'% da renda'};}), fmtV:fmt}),
      null, null,
      '<ul><li><b>Aqui a barra menor é a melhor.</b> Parcela é obrigação: se a renda cair, ela continua igual.</li>'
       +'<li><b>É este o gráfico que explica a sugestão.</b> Ela abre mão de '+fk(melhorC-sug.patrimH)+' de patrimônio (ruído, depois de '+HOR+' anos) para derrubar a parcela em <b>'+fmt(Math.max(0,seu.p1-sug.p1))+' por mês</b>.</li>'
