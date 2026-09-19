@@ -221,7 +221,7 @@ function saveP(){ try{localStorage.setItem('v2p-imovel-params',JSON.stringify(P)
 function resetP(){ P=JSON.parse(JSON.stringify(DEF)); saveP(); render(); }
 
 /* ============ ESTADO DO USUÁRIO ============ */
-const S0={perfil:'clt',fgts:true,cidade:'Recife',valor:850000,caixa:500000,entrada:400000,fgtsEnt:0,
+const S0={perfil:'clt',fgts:true,cidade:'Recife',valor:720000,caixa:500000,entrada:400000,fgtsEnt:0,
   renda:12000,comp:[0,0],taxa:10.26,taxaPort:9.0,idade:39,prazos:[20,25,30],prazoRef:30,selic:13.75,invTipo:'lci',aporte:0,usarLongo:true,custosFin:false,sistema:'sac',primeiro:true,custosNoCaixa:true};
 let S=(function(){ try{const s=localStorage.getItem('v2p-imovel-estado'); if(s)return Object.assign({},S0,JSON.parse(s));}catch(e){} return Object.assign({},S0); })();
 function saveS(){ try{localStorage.setItem('v2p-imovel-estado',JSON.stringify(S));}catch(e){} }
