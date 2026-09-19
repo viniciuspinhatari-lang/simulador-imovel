@@ -774,15 +774,22 @@ function render(modo){
       +(function(){ const tr=realProj(), passo=5;
          const anos=[]; for(let y=passo;y<=HOR;y+=passo)anos.push(y);
          if(anos[anos.length-1]!==HOR)anos.push(HOR);
+         /* o quanto voce guardou por mes naquele ano: e o orcamento menos a
+            parcela daquele mes. Como a parcela do SAC cai, o aporte sobe. */
+         const rSug=sac(S.valor-sug.entrada+(S.custosFin?custosPrev:0),sug.anos,S.taxa,S.idade);
+         const aporteNoAno=function(y){ if(y>sug.anos)return orc;
+           return Math.max(0, orc - rSug.ps[Math.min((y-1)*12, rSug.ps.length-1)]); };
          const ln=function(pl,y){ const p=pl.serie[y-1]; if(!p)return null;
            const inf=Math.pow(1+P.infl/100,y);
-           return {y, real:p.cartH, nom:p.cartH*inf, rReal:rendaDe(p.cartH,tr), rNom:rendaDe(p.cartH,tr)*inf}; };
+           return {y, real:p.cartH, nom:p.cartH*inf, rReal:rendaDe(p.cartH,tr), rNom:rendaDe(p.cartH,tr)*inf,
+                   ap:aporteNoAno(y), apH:hoje(aporteNoAno(y), y-1)}; };
          const L=anos.map(function(y){return ln(sug,y);}).filter(Boolean);
          if(!L.length)return '';
          return '<h3 style="margin-top:14px">O mapa: de 5 em 5 anos, sempre reinvestindo</h3>'
           +'<p>Quanto o dinheiro investido vira e quanta renda mensal ele passa a pagar, a cada bloco de cinco anos. <b>Nada é sacado no caminho</b> — todo rendimento volta para dentro. A renda da última coluna é o que <b>passaria</b> a ser possível sacar naquele ano, se você decidisse parar de reinvestir ali.</p>'
           +'<div class="scroll"><table><thead><tr>'
           +'<th class="mono">anos investindo</th><th class="mono">sua idade</th>'
+          +'<th class="mono">guardando por mês<br><span style="font-weight:400;text-transform:none">naquele ano</span></th>'
           +'<th class="mono">montante<br><span style="font-weight:400;text-transform:none">em R$ de hoje</span></th>'
           +'<th class="mono">montante<br><span style="font-weight:400;text-transform:none">nominal</span></th>'
           +'<th class="mono">renda/mês<br><span style="font-weight:400;text-transform:none">em R$ de hoje</span></th>'
@@ -790,16 +797,39 @@ function render(modo){
           +'<th class="mono">% do seu salário</th></tr></thead><tbody>'
           +L.map(function(x){ const pc=x.rReal/rendaTot*100;
             return '<tr'+(x.y===HOR?' class="hl"':'')+'><td class="mono"><b>'+x.y+' anos</b></td><td class="mono">'+(S.idade+x.y)+'</td>'
+             +'<td class="mono">'+fmt(x.ap)+'<span class="h" style="display:block;font-size:10.5px;color:var(--muted)">'+fmt(x.apH)+' em R$ de hoje</span></td>'
              +'<td class="mono"><b>'+fk(x.real)+'</b></td><td class="mono">'+fk(x.nom)+'</td>'
              +'<td class="mono"><b>'+fmt(x.rReal)+'</b></td><td class="mono">'+fmt(x.rNom)+'</td>'
              +'<td class="mono '+(pc>=100?'pos':pc>=50?'wr':'')+'">'+fp(pc,0)+'%'+(pc>=100?' <span class="chip ok">paga seu padrão de vida</span>':'')+'</td></tr>';}).join('')
           +'</tbody></table></div>'
           +gloss([['anos investindo','Quanto tempo se passou desde hoje, reinvestindo tudo sem sacar nada.'],
+            ['guardando por mês','<b>O esforço que produziu a linha.</b> É o orçamento mensal ('+fmt(orc)+') menos a parcela daquele ano. Como a parcela do SAC cai todo mês, <b>sobra mais para investir a cada ano</b> sem você tirar um centavo a mais do bolso. Depois de quitado, o orçamento inteiro vira aporte. A segunda linha traz o mesmo valor em R$ de hoje, para você sentir o esforço real.'],
             ['montante em R$ de hoje','O bolo acumulado, traduzido para o poder de compra de <b>hoje</b>. <b>É por esta coluna que se compara</b> com o que você ganha e gasta hoje.'],
             ['montante nominal','O mesmo bolo em reais daquele ano futuro. O número é muito maior e não quer dizer nada sozinho: em '+HOR+' anos a inflação de '+fp(P.infl,2)+'% ao ano multiplica os preços por '+fp(Math.pow(1+P.infl/100,HOR),1)+'.'],
             ['renda/mês em R$ de hoje','O que aquele montante pagaria por mês <b>sem encolher</b>: montante × '+fp(tr,2)+'% ao ano ÷ 12. É a resposta para "quando eu posso parar".'],
             ['renda/mês nominal','O mesmo valor mensal em reais daquele ano. Compare sempre pela coluna anterior.'],
             ['% do seu salário','A renda em R$ de hoje comparada com os '+fmt(rendaTot)+' que você ganha hoje.']],'O que significa cada coluna do mapa')
+          +(function(){ const fim=L[L.length-1], meio=L[Math.floor(L.length/2)];
+             /* Reinvestir e sacar sao os dois destinos possiveis do rendimento,
+                e a tabela acima so mostra o primeiro. Sem dizer isso, quem le
+                acha que os dois numeros convivem — nao convivem. */
+             return '<h3 style="margin-top:16px">O que fazer com o rendimento: as duas opções</h3>'
+              +'<p>Todo mês o dinheiro investido gera rendimento — juros, dividendos de FI-Infra, cupons de debênture. <b>Você faz uma escolha com ele, e só existem dois caminhos.</b> A tabela acima mostra só o primeiro.</p>'
+              +'<div class="plano">'
+              +'<div class="card sug"><h3><i style="background:var(--c2)"></i>A. Reinvestir tudo</h3>'
+                +'<p style="margin:0 0 8px">O rendimento volta para dentro e passa a render também. Você não recebe nada no caminho.</p>'
+                +'<div class="linha"><span>você saca por mês</span><b>nada</b></div>'
+                +'<div class="linha"><span>o bolo em '+HOR+' anos</span><b>'+fk(fim.real)+'</b></div>'
+                +'<div class="linha"><span>renda possível ao parar</span><b>'+fmt(fim.rReal)+'/mês</b></div>'
+                +'<p class="meta" style="margin:8px 0 0">É o que a tabela acima calcula. Serve para <b>acumular</b>: aposentadoria, faculdade do filho, herança.</p></div>'
+              +'<div class="card"><h3><i style="background:var(--c1)"></i>B. Sacar o rendimento</h3>'
+                +'<p style="margin:0 0 8px">Você tira o rendimento todo mês e gasta. O bolo <b>para de crescer</b> em poder de compra — fica do tamanho que estava.</p>'
+                +'<div class="linha"><span>você saca por mês, desde já</span><b>'+fmt(rendaDe(sug.cartH>0?L[0].real:0,tr))+'</b></div>'
+                +'<div class="linha"><span>o bolo em '+HOR+' anos</span><b>'+fk(L[0].real)+'</b></div>'
+                +'<div class="linha"><span>renda daqui a '+HOR+' anos</span><b>'+fmt(rendaDe(L[0].real,tr))+'/mês</b></div>'
+                +'<p class="meta" style="margin:8px 0 0">Números ilustrativos, a partir do bolo do ano '+L[0].y+'. Serve para <b>complementar a renda agora</b> — ao custo de o bolo nunca mais crescer.</p></div></div>'
+              +'<div class="note warn"><b>O que a escolha custa, com os seus números.</b> Reinvestindo, em '+HOR+' anos o bolo vai a '+fk(fim.real)+' e passa a poder pagar <b>'+fmt(fim.rReal)+' por mês</b>. Sacando desde o ano '+L[0].y+', você recebe <b>'+fmt(rendaDe(L[0].real,tr))+' por mês</b> agora, e daqui a '+HOR+' anos continua recebendo os mesmos '+fmt(rendaDe(L[0].real,tr))+' — <b>'+fp(fim.rReal/Math.max(1,rendaDe(L[0].real,tr)),1)+' vezes menos</b>. <b>Não é que sacar seja errado</b>: é dinheiro seu e pode ser exatamente do que você precisa. Mas os dois números não convivem — cada real sacado é um real que deixa de render para sempre.</div>'
+              +'<div class="def"><b>O meio-termo existe.</b> Dá para reinvestir enquanto está trabalhando e passar a sacar quando parar — é o uso mais comum. Neste caso, a linha da tabela acima correspondente ao ano em que você parar é o seu ponto de partida, e a coluna "renda/mês" passa a ser o que entra na sua conta a partir dali. <b>Dividendo de FI-Infra e cupom de debênture incentivada são isentos de IR para pessoa física</b>, então o que aparece na coluna é o que chega líquido.</div>'; })()
           +'<div class="note lj"><b>Por que a renda demora e depois dispara.</b> Reinvestir significa que o rendimento de cada ano passa a render no ano seguinte. Nos primeiros blocos o montante é pequeno e o efeito quase não aparece; nos últimos, o mesmo percentual incide sobre um bolo muito maior. Entre o ano '+L[0].y+' e o ano '+HOR+' a renda mensal sai de '+fmt(L[0].rReal)+' para '+fmt(L[L.length-1].rReal)+' — <b>'+fp(L[L.length-1].rReal/Math.max(1,L[0].rReal),1)+' vezes</b>, em dinheiro de hoje, com o mesmo esforço mensal.</div>'
           +'<div class="note warn"><b>O que este mapa assume.</b> Que você reinveste <b>tudo</b>, todo mês, por '+HOR+' anos, a '+fp(tr,2)+'% acima da inflação, e não saca nada no caminho. Sacar antes não é erro — só muda a conta, e a linha do ano em que você parar passa a ser o seu ponto final. Este mapa é do <b>cenário recomendado</b>; o seu plano segue a mesma matemática, com os números dos cartões acima.</div>'; })()
       +'<div class="def"><b>Como leio o "quanto isso paga por mês".</b> É o que dá para sacar todo mês <b>sem gastar o montante</b>, só o rendimento. Não é o rendimento nominal: parte dele só repõe a inflação de '+fp(P.infl,1)+'% e precisa ficar na carteira, senão a renda mingua ano após ano. O que sobra é a <b>taxa real</b>, hoje em <b>'+fp(realProj(),2)+'% ao ano</b> ('+fp(realProj()/12,3)+'% ao mês) — '
