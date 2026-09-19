@@ -252,11 +252,24 @@ function sac(pv,anos,taxa,idade0,sist){
   return {ps,sal,jur,seg,amt,sist:price?'price':'sac',p1:ps[0],pn:ps[ps.length-1],tot:ps.reduce((a,b)=>a+b,0)};
 }
 function hoje(v,anos){ return v/Math.pow(1+P.infl/100,anos); }
-function escalaY(y0,y1){ const amp=y1-y0;
-  if(amp>=2e6)return v=>'R$ '+(v/1e6).toFixed(1)+'M';
-  if(amp>=2e5)return v=>'R$ '+Math.round(v/1000).toLocaleString('pt-BR')+'k';
-  if(amp>=2e3)return v=>'R$ '+(v/1000).toFixed(1)+'k';
+function escalaY(y0,y1){
+  /* a unidade vem da grandeza dos valores, nao da amplitude da curva: uma
+     faixa estreita la em cima (4,09M a 4,31M) continua sendo milhao. */
+  const m=Math.max(Math.abs(y0),Math.abs(y1)), amp=Math.abs(y1-y0);
+  if(m>=1e6){ const d=amp<1e5?2:amp<1e6?2:1;
+    return v=>'R$ '+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+' mi'; }
+  if(m>=1e4)return v=>'R$ '+Math.round(v/1000).toLocaleString('pt-BR')+' mil';
+  if(m>=1e3)return v=>'R$ '+(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil';
   return v=>'R$ '+Math.round(v).toLocaleString('pt-BR'); }
+/* altura da curva num x qualquer, interpolando entre os dois pontos vizinhos:
+   marcador desenhado no x real tem de ficar na altura real, nao na do vizinho */
+function alturaEm(pts,x){
+  if(!pts.length)return 0;
+  if(x<=pts[0][0])return pts[0][1];
+  for(let i=1;i<pts.length;i++){
+    if(pts[i][0]>=x){ const [xa,ya]=pts[i-1],[xb,yb]=pts[i];
+      return xb===xa?yb:ya+(yb-ya)*(x-xa)/(xb-xa); } }
+  return pts[pts.length-1][1]; }
 function svgLinha(cfg){
   /* cfg: {series:[{nome,cor,pts:[[x,y]...]}], xlab, ylab, fx, fy, w,h} */
   const W=cfg.w||760,H=cfg.h||260,ml=64,mr=18,mt=cfg.ylab?26:12,mb=34;
@@ -680,9 +693,17 @@ function render(modo){
   const curva=grade.map(e=>{const sm=simular(e,sug.anos,orc,HOR); return [e,sm.patrimH,sm.p1,sm.p1>orcTeto||sm.aporte1<0];}).filter(x=>!x[3]);
   if(curva.length>2){
    html+=figura('Onde o patrimônio termina maior, por tamanho da entrada',
-     'Todos os pontos: financiar em <b>'+sug.anos+' anos</b>, gastando '+fmt(orc)+' por mês (parcela + o que sobra investido), e medir tudo em <b>'+HOR+' anos</b> — o mesmo ponto para todos, senão prazos diferentes não se comparam. Depois de quitado, o orçamento inteiro vai para investimento.',
+     (function(){ const ys=curva.map(x=>x[1]), yM=Math.max(...ys), ym=Math.min(...ys);
+       return 'Todos os pontos: financiar em <b>'+sug.anos+' anos</b>, gastando '+fmt(orc)+' por mês (parcela + o que sobra investido), e medir tudo em <b>'+HOR+' anos</b> — o mesmo ponto para todos, senão prazos diferentes não se comparam. Depois de quitado, o orçamento inteiro vai para investimento.'
+        +'<br><b>Cuidado com a escala:</b> o eixo vertical vai de '+fk(ym)+' a '+fk(yM)+' — não começa em zero. Do melhor ao pior cenário a diferença é de <b>'+fk(yM-ym)+'</b>, ou <b>'+fp((yM/ym-1)*100,1)+'%</b> do total. A linha desce de verdade, mas a inclinação no desenho é bem maior que a diferença na vida.'; })(),
      svgLinha({series:[{nome:'patrimônio em R$ de hoje',cor:C2,pts:curva.map(x=>[x[0],x[1]])}],
-       marcas:[{x:entradaTot,y:(curva.find(x=>x[0]>=entradaTot)||curva[curva.length-1])[1],cor:C1,rot:'sua'},{x:sug.entrada,y:sug.patrimH,cor:C2,rot:'sugerida'}],
+       marcas:(function(){ const pts=curva.map(x=>[x[0],x[1]]);
+         const lo=pts[0][0], hi=pts[pts.length-1][0];
+         const px=Math.min(hi,Math.max(lo,entradaTot)), sx=Math.min(hi,Math.max(lo,sug.entrada));
+         const m=[{x:px,y:alturaEm(pts,px),cor:C1,rot:entradaTot===px?'sua':'sua (fora da faixa)'}];
+         /* se as duas caem no mesmo ponto, uma etiqueta so — senao elas se cobrem */
+         if(Math.abs(sx-px)>(hi-lo)/60)m.push({x:sx,y:alturaEm(pts,sx),cor:C2,rot:'sugerida'});
+         return m; })(),
        fx:v=>'R$ '+Math.round(v/1000)+'k', ylab:'patrimônio em '+HOR+' anos, em R$ de hoje ↑', xlab:'entrada →',
        fxTip:v=>'entrada de '+fk(v), fyTip:v=>v==null?'—':fk(v), h:250}),
      null,
