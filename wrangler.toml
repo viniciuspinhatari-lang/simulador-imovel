@@ -1,0 +1,8 @@
+# Cloudflare Pages — simulador de financiamento imobiliário
+# Deploy:  npx wrangler pages deploy
+name = "simulador-imovel"
+pages_build_output_dir = "."
+compatibility_date = "2026-09-18"
+
+# account_id fica no .env / variável de ambiente CLOUDFLARE_ACCOUNT_ID
+# Conta usada: 5e1a6e64225fb86ea4326186172dce54
