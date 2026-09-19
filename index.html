@@ -242,6 +242,7 @@ const fmt=v=>'R$ '+(Math.round(v*100)/100).toLocaleString('pt-BR',{minimumFracti
 const fk=v=>{ const a=Math.abs(v);
   /* acima de 1 milhao, "R$ 2.720 mil" confunde: o ponto e separador de
      milhar. Vira "R$ 2,72 mi", que se le de primeira. */
+  if(a<1000) return 'R$ '+Math.round(v).toLocaleString('pt-BR');  /* "R$ 0 mil" nao se le */
   return a>=1e6 ? 'R$ '+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' mi'
                 : 'R$ '+Math.round(v/1000).toLocaleString('pt-BR')+' mil'; };
 const fp=(v,d=2)=>(+v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -446,6 +447,22 @@ function render(modo){
   let html='';
   /* --- 1. perfil --- */
   html+='<div class="aoVivo"><span class="pulso"></span><div><b>Tudo nesta página recalcula sozinho.</b> Mudou um campo, mudaram na hora as 13 seções abaixo: parcelas, checagem das regras, recomendação, gráficos, portabilidade e consórcio. <b>Não existe "salvar"</b> — o que você digita fica guardado neste navegador e volta quando você abrir de novo. O botão <i>Calcular</i> serve só para rolar até o resultado.</div></div>'
+   +(function(){ const anos=35, m=Math.pow(1+P.infl/100,anos), ex=1000;
+      return '<details class="secD" style="margin:0 0 16px"><summary><h2 style="border:0;padding:0;margin:0">Antes de tudo: o que é "nominal" e o que é "em R$ de hoje"</h2>'
+       +'<span class="tl">Os dois aparecem em toda tabela desta página. Confundir um com o outro é o erro que faz gente achar que vai ficar rica e se decepcionar. Dois minutos de leitura.</span></summary><div class="sd">'
+       +'<p><b>Nominal</b> é o número que vai estar escrito no extrato naquele dia. <b>Em R$ de hoje</b> é quanto aquele dinheiro compraria se você pudesse trazê-lo para hoje e gastar agora. <b>É sempre o mesmo dinheiro</b> — o que muda é a régua usada para medir.</p>'
+       +'<div class="note lj"><b>O exemplo que resolve.</b> Pense no que '+fmt(ex)+' compra hoje: digamos, um mês de supermercado da sua casa. '
+       +'Guarde esse valor numa gaveta, sem render nada, e volte daqui a '+anos+' anos. No extrato ainda estarão os mesmos <b>'+fmt(ex)+'</b> — esse é o valor <b>nominal</b>, e ele não mudou. '
+       +'Mas o supermercado que custava '+fmt(ex)+' passou a custar <b>'+fmt(ex*m)+'</b>, porque os preços subiram '+fp(P.infl,2)+'% ao ano. '
+       +'Então aqueles '+fmt(ex)+' na gaveta compram agora só <b>'+fmt(ex/m)+'</b> de supermercado em poder de compra. <b>'+fmt(ex/m)+' é o valor "em R$ de hoje" daquele dinheiro.</b></div>'
+       +'<div class="scroll"><table><thead><tr><th>a pergunta</th><th>qual coluna responde</th><th>por quê</th></tr></thead><tbody>'
+       +'<tr><td><b>"Quanto vai estar escrito no boleto/extrato?"</b></td><td class="mono">nominal</td><td>É o número que a vida real vai imprimir naquele dia.</td></tr>'
+       +'<tr><td><b>"Isso é muito ou é pouco?"</b></td><td class="mono"><b>em R$ de hoje</b></td><td>Só dá para julgar comparando com preços que você conhece — e os que você conhece são os de hoje.</td></tr>'
+       +'<tr><td><b>"Qual opção é melhor?"</b></td><td class="mono"><b>em R$ de hoje</b></td><td>Comparar valores nominais de anos diferentes é comparar réguas diferentes. Sempre decida por esta coluna.</td></tr>'
+       +'</tbody></table></div>'
+       +'<div class="note warn"><b>Por que isso engana tanto.</b> Números nominais de futuro distante são sempre grandes e sempre impressionam. Nesta página você vai ver patrimônio de <b>milhões</b> na coluna nominal — e o mesmo dinheiro valendo cerca de <b>um quarto disso</b> na coluna em R$ de hoje, porque em '+anos+' anos a inflação de '+fp(P.infl,2)+'% multiplica os preços por <b>'+fp(m,1)+'</b>. Nenhuma das duas colunas mente; elas respondem perguntas diferentes. <b>Quem vende investimento mostra a nominal. Quem decide olha a de hoje.</b></div>'
+       +'<div class="def"><b>A regra desta calculadora:</b> todo valor futuro aparece <b>nas duas formas</b>, sempre, lado a lado — e a inflação usada ('+fp(P.infl,2)+'% ao ano) vem do IPCA de 12 meses do Banco Central e é editável nos parâmetros, porque ela também envelhece.</div>'
+       +'</div></details>'; })()
    +'<h2>1. Quem é você</h2><div class="card"><div class="grid">'
    +'<div><label>Vínculo</label><select id="perfil">'+Object.keys(P.perfis).map(k=>'<option value="'+k+'"'+(k===S.perfil?' selected':'')+'>'+esc(P.perfis[k].n)+'</option>').join('')+'</select></div>'
    +'<div><label>Tem FGTS (3 anos de carteira)?</label><select id="fgts"'+(perfil.fgts?'':' disabled')+'><option value="1"'+(S.fgts?' selected':'')+'>sim</option><option value="0"'+(!S.fgts?' selected':'')+'>não</option></select></div>'
@@ -853,38 +870,49 @@ function render(modo){
   const curva=grade.map(e=>{const sm=simular(e,sug.anos,orc,HOR); return [e,sm.patrimH,sm.p1,sm.p1>orcTeto||sm.aporte1<0];}).filter(x=>!x[3]);
   if(curva.length>2){
    const piorC=Math.min.apply(null,curva.map(function(x){return x[1];}));
-   /* o ponto da grade mais proximo de cada marca. Tolerancia fixa marcava
-      dois vizinhos quando o passo da grade era menor que a tolerancia. */
+   const melhorC=Math.max.apply(null,curva.map(function(x){return x[1];}));
    const perto=function(alvo){ return curva.reduce(function(p,q){
      return Math.abs(q[0]-alvo)<Math.abs(p[0]-alvo)?q:p; })[0]; };
    const xSua=perto(entradaTot), xSug=perto(sug.entrada);
-   const melhorC=Math.max.apply(null,curva.map(function(x){return x[1];}));
-   /* mostra a VANTAGEM sobre o pior cenario: assim a barra parte do zero de
-      verdade e a diferenca aparece no tamanho real, sem eixo cortado. */
-   html+=figura('Quanto cada entrada rende a mais que a pior delas',
-     'Cada barra é um <b>cenário</b>, não um ano — por isso barra e não linha. Todos financiam em '+sug.anos+' anos e gastam '+fmt(orc)+' por mês. A barra mede <b>quanto aquele cenário termina acima do pior</b>, para a comparação começar no zero. <b>Aqui, barra maior é melhor</b> — mas veja o tamanho da diferença antes de decidir por ela.',
-     svgBarras({itens:curva.map(function(x){
-        const ehSua=x[0]===xSua, ehSug=x[0]===xSug;
-        const m=(ehSua&&ehSug)?'  ◀ a sua e a sugerida':(ehSug?'  ◀ sugerida':(ehSua?'  ◀ a sua':''));
-        return {rot:'entrada '+fk(x[0])+m, val:x[1]-piorC, cor:ehSug?C2:(ehSua?C1:'var(--line2)'),
-                marca:ehSua||ehSug};}), fmtV:fk}),
-     null, null,
-     '<ul><li><b>Barra maior = mais patrimônio no fim.</b> A barra mede a distância até o pior cenário da lista, então a menor sempre fica em zero.</li>'
-      +'<li><b>A diferença inteira é de '+fk(melhorC-piorC)+'</b>, ou '+fp((melhorC/piorC-1)*100,1)+'% — depois de '+HOR+' anos. É pouco, e é essa a informação principal deste gráfico: <b>o tamanho da entrada quase não muda o resultado final</b>.</li>'
-      +'<li><b>Por isso a sugestão não é a barra maior.</b> Quando a diferença de patrimônio é ruído, o que decide é outra coisa — a parcela que você assume todo mês. Veja o gráfico seguinte.</li>'
-      +'<li><b>Não é o tempo passando.</b> Andar para baixo na lista é dar mais entrada, não esperar mais anos.</li></ul>');
-   /* ---- o outro lado da moeda: a parcela que cada cenario obriga ---- */
-   html+=figura('E quanto cada entrada obriga você a pagar por mês — aqui, barra menor é melhor',
-     'Os mesmos cenários do gráfico acima, medindo agora a <b>primeira parcela</b>: o valor que vira obrigação contratual por '+sug.anos+' anos. <b>Atenção — a leitura inverte:</b> no gráfico de cima, barra maior era melhor; aqui, <b>barra menor é melhor</b>, porque menos parcela é menos obrigação.',
-     svgBarras({itens:curva.map(function(x){
-        const ehSua=x[0]===xSua, ehSug=x[0]===xSug;
-        const m=(ehSua&&ehSug)?'  ◀ a sua e a sugerida':(ehSug?'  ◀ sugerida':(ehSua?'  ◀ a sua':''));
-        return {rot:'entrada '+fk(x[0])+m, val:x[2], cor:ehSug?C2:(ehSua?C1:'var(--line2)'),
-                marca:ehSua||ehSug, nota:fp(x[2]/rendaTot*100,0)+'% da renda'};}), fmtV:fmt}),
-     null, null,
-     '<ul><li><b>Aqui a barra menor é a melhor.</b> Parcela é obrigação: se a renda cair, ela continua igual.</li>'
-      +'<li><b>É este o gráfico que explica a sugestão.</b> Ela abre mão de '+fk(melhorC-sug.patrimH)+' de patrimônio (ruído, depois de '+HOR+' anos) para derrubar a parcela em <b>'+fmt(Math.max(0,seu.p1-sug.p1))+' por mês</b>.</li>'
-      +'<li><b>Patrimônio parecido, risco diferente.</b> Os dois cenários terminam quase no mesmo lugar; o que muda é quanto do seu mês fica preso num contrato de '+sug.anos+' anos.</li></ul>');
+
+   /* ---------------------------------------------------------------------
+      Dois graficos de DUAS barras: o seu plano contra a sugestao, nos dois
+      numeros que decidem. Barras partem do zero e mostram o valor real —
+      a versao anterior plotava "distancia ate o pior cenario", e por isso
+      a sugestao aparecia como "R$ 0" sem barra, como se nao valesse nada.
+   --------------------------------------------------------------------- */
+   html+='<h3 style="margin-top:16px">Os dois números que decidem, lado a lado</h3>'
+    +'<p>Dois gráficos, duas barras cada. <b>Compare o tamanho das barras dentro de cada gráfico</b> — é a diferença entre o seu plano e a sugestão.</p>'
+    +figura('1. A parcela que você assume todo mês',
+      'O valor que vira <b>obrigação contratual</b>. Se a renda cair, ele continua igual. <b>Barra menor é melhor.</b>',
+      svgBarras({itens:[
+         {rot:'seu plano',      val:seu.p1, cor:C1, marca:true, nota:fp(seu.p1/rendaTot*100,1)+'% da sua renda'},
+         {rot:'sugestão',       val:sug.p1, cor:C2, marca:true, nota:fp(sug.p1/rendaTot*100,1)+'% da sua renda'}
+       ], fmtV:fmt, h:44}),
+      null, null,
+      '<ul><li><b>A barra da sugestão é visivelmente menor.</b> São '+fmt(Math.abs(seu.p1-sug.p1))+' a menos, todo mês, por '+sug.anos+' anos.</li>'
+       +'<li><b>Parcela não é poupança forçada.</b> É dívida com prazo. Atrasar gera juro de mora e, no limite, perde o imóvel.</li></ul>')
+    +figura('2. O patrimônio no fim, em R$ de hoje',
+      'Imóvel mais dinheiro investido, depois de '+HOR+' anos. <b>Barra maior seria melhor</b> — mas repare no tamanho das duas.',
+      svgBarras({itens:[
+         {rot:'seu plano',      val:seu.patrimH, cor:C1, marca:true, nota:'imóvel + investido'},
+         {rot:'sugestão',       val:sug.patrimH, cor:C2, marca:true, nota:'imóvel + investido'}
+       ], fmtV:fk, h:44}),
+      null, null,
+      '<ul><li><b>As duas barras têm praticamente o mesmo tamanho.</b> É exatamente isso que '+fp(Math.abs(sug.patrimH-seu.patrimH)/Math.max(1,seu.patrimH)*100,1)+'% de diferença quer dizer — e por isso ela não deve decidir nada sozinha.</li>'
+       +'<li><b>Aqui as barras partem do zero e mostram o valor real.</b> Nenhum truque de escala: se a diferença fosse grande, você veria.</li>'
+       +'<li><b>Junte os dois gráficos:</b> patrimônio igual, parcela bem menor. É essa a troca.</li></ul>')
+    +'<details class="gloss"><summary>▸ Ver os outros tamanhos de entrada que testei</summary><div class="gc">'
+    +'<p>Os '+curva.length+' cenários avaliados, do menor para o maior valor de entrada. Todos financiam em '+sug.anos+' anos e gastam '+fmt(orc)+' por mês.</p>'
+    +'<div class="scroll"><table><thead><tr><th class="mono">entrada</th><th class="mono">1ª parcela</th><th class="mono">% da renda</th><th class="mono">patrimônio em '+HOR+' anos</th><th></th></tr></thead><tbody>'
+    +curva.map(function(x){ const ehSua=x[0]===xSua, ehSug=x[0]===xSug;
+       return '<tr'+(ehSug?' class="hl"':(ehSua?' class="hla"':''))+'><td class="mono"><b>'+fk(x[0])+'</b></td>'
+        +'<td class="mono">'+fmt(x[2])+'</td><td class="mono '+(x[2]/rendaTot>0.3?'neg':x[2]/rendaTot>0.25?'wr':'')+'">'+fp(x[2]/rendaTot*100,1)+'%</td>'
+        +'<td class="mono">'+fk(x[1])+'</td>'
+        +'<td>'+(ehSug?'<span class="chip ok">sugerida</span>':'')+(ehSua?'<span class="chip">a sua</span>':'')+'</td></tr>';}).join('')
+    +'</tbody></table></div>'
+    +'<p class="meta">Do melhor ao pior cenário desta lista a diferença de patrimônio é de '+fk(melhorC-piorC)+', ou '+fp((melhorC/piorC-1)*100,1)+'% — depois de '+HOR+' anos. O tamanho da entrada quase não muda o resultado final; muda a parcela.</p>'
+    +'</div></details>';
    if(false)html+=figura('Onde o patrimônio termina maior, por tamanho da entrada',
      (function(){ const ys=curva.map(x=>x[1]), yM=Math.max(...ys), ym=Math.min(...ys);
        return 'Todos os pontos: financiar em <b>'+sug.anos+' anos</b>, gastando '+fmt(orc)+' por mês (parcela + o que sobra investido), e medir tudo em <b>'+HOR+' anos</b> — o mesmo ponto para todos, senão prazos diferentes não se comparam. Depois de quitado, o orçamento inteiro vai para investimento.'
