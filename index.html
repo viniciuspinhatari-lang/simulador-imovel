@@ -633,24 +633,24 @@ function render(modo){
    +'<div class="linha"><span>entrada</span><b>'+fk(entradaTot)+'</b></div>'
    +'<div class="linha"><span>prazo</span><b>'+S.prazoRef+' anos</b></div>'
    +'<div class="linha"><span>1ª parcela</span><b>'+fmt(seu.p1)+'</b></div>'
-   +'<div class="linha"><span>guardar por mês (início)</span><b>'+(seu.aporte1>=0?fmt(seu.aporte1):'<span class="neg">não sobra</span>')+'</b></div>'
-   +'<div class="linha"><span>patrimônio em '+HOR+' anos, em R$ de hoje</span><b>'+fk(seu.patrimH)+'</b></div></div>'
+   +'<div class="linha"><span>sobra para investir por mês</span><b>'+(seu.aporte1>=0?fmt(seu.aporte1):'<span class="neg">não sobra</span>')+'</b></div>'
+   +'<div class="linha"><span>imóvel + investido em '+HOR+' anos</span><b>'+fk(seu.patrimH)+'</b></div></div>'
    +'<div class="card sug"><h3><i style="background:'+C2+'"></i>'+(igual?'Sugestão = seu plano':'Sugestão')+'</h3>'
    +'<div class="linha"><span>entrada</span><b>'+fk(sug.entrada)+(sug.entrada!==entradaTot?' <span class="'+(sug.entrada<entradaTot?'pos':'wr')+'">('+(sug.entrada<entradaTot?'−':'+')+fk(Math.abs(sug.entrada-entradaTot))+')</span>':'')+'</b></div>'
    +'<div class="linha"><span>prazo</span><b>'+sug.anos+' anos</b></div>'
    +'<div class="linha"><span>1ª parcela</span><b>'+fmt(sug.p1)+'</b></div>'
-   +'<div class="linha"><span>guardar por mês (início)</span><b class="'+(sug.aporte1>=seu.aporte1?'pos':'wr')+'">'+fmt(sug.aporte1)+'</b></div>'
-   +'<div class="linha"><span>patrimônio em '+HOR+' anos, em R$ de hoje</span><b class="'+(sug.patrimH>=seu.patrimH?'pos':'wr')+'">'+fk(sug.patrimH)+'</b></div></div></div>'
+   +'<div class="linha"><span>sobra para investir por mês</span><b class="'+(sug.aporte1>=seu.aporte1?'pos':'wr')+'">'+fmt(sug.aporte1)+'</b></div>'
+   +'<div class="linha"><span>imóvel + investido em '+HOR+' anos</span><b class="'+(sug.patrimH>=seu.patrimH?'pos':'wr')+'">'+fk(sug.patrimH)+'</b></div></div></div>'
    +(function(){ const rm=x=>rendaMes(x.cartH);
-     const bloco=(t,x,cor)=>'<div class="card"><h3><i style="background:'+cor+'"></i>'+t+' — o que existe no fim</h3><div class="strip">'
+     const bloco=(t,x,cor)=>'<div class="card"><h3><i style="background:'+cor+'"></i>'+t+' — o que você tem no fim</h3><div class="strip">'
        +'<div class="tile"><small>imóvel, em R$ de hoje</small><b>'+fk(S.valor)+'</b><span class="h">R$ '+fk(S.valor*Math.pow(1+P.infl/100,HOR)).replace('R$ ','')+' nominais em '+HOR+' anos</span></div>'
-       +'<div class="tile"><small>carteira, em R$ de hoje</small><b>'+fk(x.cartH)+'</b><span class="h">nominal '+fk(x.cart)+'</span></div>'
-       +'<div class="tile"><small>patrimônio, em R$ de hoje</small><b>'+fk(x.patrimH)+'</b><span class="h">imóvel + carteira</span></div>'
-       +'<div class="tile"><small>renda da carteira</small><b>'+fmt(rm(x))+'/mês</b><span class="h">em R$ de hoje, sem encolher o principal</span></div></div></div>';
+       +'<div class="tile"><small>dinheiro investido</small><b>'+fk(x.cartH)+'</b><span class="h">nominal '+fk(x.cart)+'</span></div>'
+       +'<div class="tile"><small>imóvel + investido</small><b>'+fk(x.patrimH)+'</b><span class="h">a soma dos dois quadros ao lado</span></div>'
+       +'<div class="tile"><small>quanto isso paga por mês</small><b>'+fmt(rm(x))+'</b><span class="h">sacando só o rendimento, sem gastar o montante</span></div></div></div>';
      return '<div class="plano">'+bloco('Seu plano',seu,C1)+bloco('Sugestão',sug,C2)+'</div>'
-      +'<div class="def"><b>Como leio a "renda da carteira".</b> É o que dá para sacar todo mês <b>sem encolher o principal em poder de compra</b>. Não é o rendimento nominal: parte dele só repõe a inflação de '+fp(P.infl,1)+'% e precisa ficar na carteira, senão a renda mingua ano após ano. O que sobra é a <b>taxa real</b>, hoje em <b>'+fp(realProj(),2)+'% ao ano</b> ('+fp(realProj()/12,3)+'% ao mês) — '
+      +'<div class="def"><b>Como leio o "quanto isso paga por mês".</b> É o que dá para sacar todo mês <b>sem gastar o montante</b>, só o rendimento. Não é o rendimento nominal: parte dele só repõe a inflação de '+fp(P.infl,1)+'% e precisa ficar na carteira, senão a renda mingua ano após ano. O que sobra é a <b>taxa real</b>, hoje em <b>'+fp(realProj(),2)+'% ao ano</b> ('+fp(realProj()/12,3)+'% ao mês) — '
   +(S.usarLongo?'que é a taxa real de longo prazo que você definiu em “Onde a sobra rende”, a mesma que um Tesouro IPCA+ longo paga hoje.':'que vem do investimento escolhido em “Onde a sobra rende”: (1 + '+fp(P.invest,2)+'%) ÷ (1 + '+fp(P.infl,1)+'%) − 1.')
-  +' Na prática é juro, dividendo de FI-Infra ou cupom de debênture. O imóvel aparece nas duas colunas porque é o mesmo nos dois planos; <b>quem muda é a carteira ao lado</b>.</div>'; })()
+  +' Na prática é juro, dividendo de FI-Infra ou cupom de debênture. O imóvel aparece nos dois quadros porque é o mesmo nos dois planos; <b>quem muda é o dinheiro investido ao lado</b>.</div>'; })()
    +(function(){ const sobraIni=Math.max(0,S.caixa-sug.entrada-custosAVista);
      const r=Math.pow(1+realProj()/100,HOR); const deSobra=sobraIni*r, deAportes=Math.max(0,sug.cartH-deSobra);
      const pctSobra=sug.cartH>0?deSobra/sug.cartH*100:0;
@@ -755,8 +755,13 @@ function render(modo){
     +(segueSelic()?'É um papel pós-fixado, que acompanha a Selic — por isso a projeção longa não usa a taxa de hoje, e sim '+fp(realProj(),2)+'% reais ao ano (o que um IPCA+ longo paga). Trocar de investimento em “Onde a sobra rende” muda esta tabela inteira.'
       :'É um papel de IPCA + taxa real, e a projeção usa '+fp(realProj(),2)+'% reais ao ano. Trocar de investimento em “Onde a sobra rende” muda esta tabela inteira.')
     +'</div>'
-    +'<p class="meta" style="margin:0 0 8px">Tudo em dinheiro de hoje, pela sugestão. "Renda da carteira" é a taxa real ('+fp(taxaReal(),2)+'% ao ano) sobre a carteira: o que dá para sacar todo mês sem que o principal encolha.</p>'
-    +'<div class="scroll"><table><thead><tr><th class="mono">ano</th><th class="mono">sua idade</th><th class="mono">carteira (R$ de hoje)</th><th class="mono">renda da carteira / mês</th><th class="mono">% da sua renda de hoje</th><th class="mono">cobre a parcela?</th><th class="mono">ainda paga parcela?</th><th class="mono">patrimônio (R$ de hoje)</th></tr></thead><tbody>'
+    +'<div class="def"><b>São três números diferentes. Antes da tabela, o que cada um é:</b><br>'
+    +'<b>1) Dinheiro investido</b> — o bolo que você foi juntando mês a mês, ao lado do imóvel, rendendo. É um <b>montante</b>, acumulado.<br>'
+    +'<b>2) Quanto isso paga por mês</b> — o que esse bolo rende por mês se você sacar <b>só o rendimento</b> e nunca encostar no bolo. É um <b>valor mensal</b>. Por isso é muito menor que o número da coluna anterior: um é o bolo, o outro é a fatia mensal.<br>'
+    +'<b>3) Imóvel + investido</b> — a soma de tudo o que é seu: o imóvel ('+fk(S.valor)+') mais o dinheiro investido da coluna 1. Nada de novo, é só uma soma.<br>'
+    +'<span class="meta">Confira na primeira linha: dinheiro investido + '+fk(S.valor)+' do imóvel = a última coluna.</span></div>'
+    +'<p class="meta" style="margin:0 0 8px">Tudo já descontada a inflação, então dá para comparar direto com o que você ganha hoje. A coluna 2 usa '+fp(taxaReal(),2)+'% ao ano — o rendimento acima da inflação.</p>'
+    +'<div class="scroll"><table><thead><tr><th class="mono">ano</th><th class="mono">sua idade</th><th class="mono">dinheiro investido</th><th class="mono">quanto isso paga por mês</th><th class="mono">% do seu salário de hoje</th><th class="mono">já cobre a parcela?</th><th class="mono">ainda paga parcela?</th><th class="mono">imóvel + investido</th></tr></thead><tbody>'
     +[5,10,15,20,25,30,35].filter(a=>a<=HOR).map(a=>{const x=sug.serie[a-1]; if(!x)return '';
       const pagando=a<sug.anos;
       const r=rm(x.cartH), pctRenda=r/rendaTot*100;
@@ -770,12 +775,12 @@ function render(modo){
        +'<td class="mono">'+fk(x.cartH+S.valor)+'</td></tr>';}).join('')
     +'</tbody></table></div>'
     +gloss([['ano / sua idade','Quantos anos de contrato se passaram e a idade que você terá.'],
-      ['carteira (R$ de hoje)','O dinheiro investido ao lado do imóvel, já convertido para o poder de compra atual.'],
-      ['renda da carteira / mês','O que essa carteira pagaria por mês se você vivesse do rendimento <b>sem encolher o principal em poder de compra</b> — sacando só a taxa real ('+fp(taxaReal(),2)+'% ao ano) e deixando a inflação reposta. É a linha que responde "quando eu posso parar".'],
-      ['% da sua renda de hoje','A renda da carteira comparada com o que você ganha hoje ('+fmt(rendaTot)+'). Quando chega a 100%, <b>a carteira paga sozinha o seu padrão de vida atual</b> — é a definição prática de independência financeira.'],
-      ['cobre a parcela?','Se a renda da carteira naquele ano já daria para pagar a parcela do financiamento (as duas em dinheiro de hoje). Quando passa de 1×, a dívida deixou de ser um problema: o rendimento a sustenta.'],
+      ['dinheiro investido','O montante que você acumulou investindo ao lado do imóvel, já convertido para o poder de compra de hoje. É um bolo, não uma renda.'],
+      ['quanto isso paga por mês','O que essa carteira pagaria por mês se você vivesse do rendimento <b>sem encolher o principal em poder de compra</b> — sacando só a taxa real ('+fp(taxaReal(),2)+'% ao ano) e deixando a inflação reposta. É a linha que responde "quando eu posso parar".'],
+      ['% do seu salário de hoje','O valor mensal da coluna anterior comparado com o que você ganha hoje ('+fmt(rendaTot)+'). Quando chega a 100%, <b>a carteira paga sozinha o seu padrão de vida atual</b> — é a definição prática de independência financeira.'],
+      ['já cobre a parcela?','Se o valor mensal da coluna anterior naquele ano já daria para pagar a parcela do financiamento (as duas em dinheiro de hoje). Quando passa de 1×, a dívida deixou de ser um problema: o rendimento a sustenta.'],
       ['ainda paga parcela?','Enquanto "sim", parte do orçamento vai para o banco. Quando vira "quitado", o orçamento inteiro passa a ser investido — é por isso que a curva acelera no fim.'],
-      ['patrimônio (R$ de hoje)','Carteira + imóvel. O imóvel entra pelo preço de compra porque a conta assume que ele acompanha a inflação, nem mais nem menos.']],'O que significa cada coluna')
+      ['imóvel + investido','Dinheiro investido + o valor do imóvel. O imóvel entra pelo preço de compra porque a conta assume que ele acompanha a inflação, nem mais nem menos.']],'O que significa cada coluna')
     +'<div class="note warn"><b>Sobre o valor do imóvel.</b> A calculadora assume que ele acompanha a inflação — por isso, em dinheiro de hoje, ele vale sempre '+fk(S.valor)+'. Em reais nominais daqui a '+HOR+' anos, isso dá '+fk(S.valor*Math.pow(1+P.infl/100,HOR))+'. <b>Não projetei valorização acima da inflação</b>: seria inventar número. Se o seu bairro vem subindo acima dela (veja a seção de bairros), o resultado real tende a ser melhor do que o mostrado aqui — mas isso é aposta, não conta.</div>';
   }
   /* --- 6. curva de entrada --- */
@@ -786,7 +791,11 @@ function render(modo){
   else{
   const cv=ents.map(e=>{const sm=simular(e,S.prazoRef,orc,HOR); return {e,pat:sm.patrim,patH:sm.patrimH,p1:sm.p1};});
   const best=cv.reduce((a,b)=>b.pat>a.pat?b:a), worst=cv.reduce((a,b)=>b.pat<a.pat?b:a);
-  const cvSua=cv.reduce((a,b)=>Math.abs(b.e-S.entrada)<Math.abs(a.e-S.entrada)?b:a);
+  /* a comparacao tem de ser com a SUA entrada, nao com o ponto mais proximo
+   da grade de 50 em 50 mil: senao a sua entrada "vira" a vencedora e a
+   frase final anuncia uma diferenca de zero. */
+  const smSua=simular(entradaTot,S.prazoRef,orc,HOR);
+  const cvSua={e:entradaTot,pat:smSua.patrim,patH:smSua.patrimH,p1:smSua.p1};
   let virada=null; const taxa0=S.taxa;
   for(let t=6;t<=15;t+=0.25){ S.taxa=t;
     const a=simular(ents[ents.length-1],S.prazoRef,orc,HOR).patrimH, b=simular(ents[0],S.prazoRef,orc,HOR).patrimH;
@@ -794,10 +803,10 @@ function render(modo){
   S.taxa=taxa0;
   html+='<h2>5. Quanto dar de entrada — a curva, com o mesmo desembolso mensal</h2>'
    +'<p>O mesmo motor do <b>cenário recomendado</b>, mas <b>fixando o seu prazo ('+S.prazoRef+' anos)</b> para isolar uma variável só: o tamanho da entrada. Todos gastam '+fmt(orc)+' por mês e são medidos em '+HOR+' anos. Se aqui o vencedor for diferente do sugerido na seção 6, é porque lá o prazo também podia mudar.</p>'
-   +'<div class="scroll"><table><thead><tr><th class="mono">entrada</th><th class="mono">financia</th><th class="mono">1ª parcela</th><th class="mono">% renda</th><th class="mono">patrimônio em '+HOR+' anos</th><th class="mono">em R$ de hoje</th><th class="mono">vs pior</th></tr></thead><tbody>'
+   +'<div class="scroll"><table><thead><tr><th class="mono">entrada</th><th class="mono">financia</th><th class="mono">1ª parcela</th><th class="mono">% renda</th><th class="mono">patrimônio em '+HOR+' anos</th><th class="mono">em R$ de hoje</th><th class="mono">vs pior (R$ de hoje)</th></tr></thead><tbody>'
    +cv.map(x=>'<tr class="'+(x.e===best.e?'hl':x.e===S.entrada?'hla':'')+'"><td class="mono"><b>'+fk(x.e)+'</b>'+(x.e===S.entrada?' <span class="chip">sua</span>':'')+(x.e===best.e?' <span class="chip ok">topo</span>':'')+(sug&&sug.anos===S.prazoRef&&x.e===sug.entrada?' <span class="chip mid">sugerida</span>':'')+'</td>'
      +'<td class="mono">'+fk(S.valor-x.e)+'</td><td class="mono">'+fmt(x.p1)+'</td><td class="mono '+(x.p1/rendaTot>0.3?'neg':x.p1/rendaTot>0.25?'wr':'')+'">'+fp(x.p1/rendaTot*100,1)+'%</td>'
-     +'<td class="mono"><b>'+fk(x.pat)+'</b></td><td class="mono">'+fk(x.patH)+'</td><td class="mono pos">'+(x.pat>worst.pat?'+'+fk(x.pat-worst.pat):'—')+'</td></tr>').join('')
+     +'<td class="mono"><b>'+fk(x.pat)+'</b></td><td class="mono">'+fk(x.patH)+'</td><td class="mono pos">'+(x.patH>worst.patH?'+'+fk(x.patH-worst.patH):'—')+'</td></tr>').join('')
    +'</tbody></table></div>'
    +gloss([['entrada','O dinheiro que você dá no ato da compra, nesse cenário.'],
      ['financia','O que falta, e vira dívida com o banco: valor do imóvel menos a entrada.'],
