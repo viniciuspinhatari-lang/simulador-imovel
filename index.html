@@ -433,7 +433,7 @@ function invTipos(selic){ const cdi=Math.max(0,selic-0.10), I=P.inv, ir=I.ir/100
    {k:'lci',n:'LCI / LCA '+I.lciPct+'% do CDI',bruta:cdi*I.lciPct/100,liq:cdi*I.lciPct/100,ir:'isento',regra:'isenta de IR — 90% do CDI isento vale mais que 100% tributado',risco:'FGC; carência de 9–12 meses'},
    {k:'fi',n:'FI-Infra (IPCA + '+fp(I.fiReal,1)+'%)',bruta:real(I.fiReal),liq:real(I.fiReal),ir:'isento',regra:'(1 + inflação) × (1 + taxa real) − 1 · a taxa real é a do momento, edite',risco:'cota oscila em bolsa; não é garantido; não é FGC'},
    {k:'deb',n:'Debênture incentivada (IPCA + '+fp(I.debReal,1)+'%)',bruta:real(I.debReal),liq:real(I.debReal),ir:'isento',regra:'mesma conta do FI-Infra, um emissor só',risco:'crédito de uma empresa; pode dar calote'},
-   {k:'mix',n:'Mesclado — pela sua alocação',bruta:null,liq:null,ir:'depende da fatia',regra:'média ponderada das classes da seção de perfil',risco:'o risco de cada classe, na proporção da fatia'},
+   {k:'mix',n:'Carteira diversificada — mescla de 5 classes',bruta:null,liq:null,ir:'depende da fatia',regra:'média ponderada das classes da seção de perfil',risco:'o risco de cada classe, na proporção da fatia'},
    {k:'outro',n:'Outro (você define)',bruta:I.outro,liq:I.outro,ir:'—',regra:'taxa líquida que você quiser testar',risco:'—'}
   ].map(t=>{ t.naoSegue=t.k==='fi'||t.k==='deb'||t.k==='outro'||t.k==='mix';
      t.liquidez={poup:'imediata, qualquer dia',tes:'D+1 útil',cdb:'no vencimento; antes disso só com deságio',
@@ -616,9 +616,19 @@ function render(modo){
           ? 'Com <b>'+fmt(S.aporte)+'</b> por mês, o mapa de planejamento lá embaixo mostra no que isso vira em 5, 10, 20 e 35 anos.'
           : 'Está zerado — a conta está escolhendo sozinha pelo seu limite de renda. <b>Preencha para mandar no seu plano.</b>')
        +'</span></div>'
-     +'<div><label>Em que investir</label><select id="inv_tipo">'
-       +TIP.map(function(x){ return '<option value="'+x.k+'"'+(x.k===S.invTipo?' selected':'')+'>'+esc(x.n)+'</option>'; }).join('')
-       +'</select><span class="meta">'+(sel.liq!=null?fp(sel.liq,2)+'% ao ano líquido':'—')+'</span></div>'
+     +(function(){ /* o seletor tem de deixar obvio que da para diversificar:
+          antes, a mescla era so mais uma linha entre oito, e passava batido */
+        const op=function(x){ return '<option value="'+x.k+'"'+(x.k===S.invTipo?' selected':'')+'>'+esc(x.n)+'</option>'; };
+        const mix=TIP.filter(function(x){return x.k==='mix';}), um=TIP.filter(function(x){return x.k!=='mix';});
+        return '<div><label>Em que investir</label><select id="inv_tipo">'
+         +'<optgroup label="Diversificado — várias classes ao mesmo tempo">'+mix.map(op).join('')+'</optgroup>'
+         +'<optgroup label="Um tipo só">'+um.map(op).join('')+'</optgroup>'
+         +'</select><span class="meta">'+(sel.liq!=null?fp(sel.liq,2)+'% ao ano líquido':'—')+'</span>'
+         +(S.invTipo==='mix'
+            ? '<span class="meta" style="display:block;margin-top:5px;color:var(--pos)">5 classes ao mesmo tempo · <b>ajuste as porcentagens logo abaixo</b></span>'
+            : '<span class="meta" style="display:block;margin-top:5px">Assim <b>todo o seu dinheiro fica num tipo só</b>. '
+              +'<a href="#" onclick="mixDoPerfil();return false"><b>Diversificar em 5 classes</b></a> — parte em caixa, parte em Tesouro, parte em debênture, parte em FI-Infra, parte em bolsa, nas porcentagens que você quiser.</span>')
+         +'</div>'; })()
      +'<div><label>Quando dá para retirar</label><input value="" id="inv_liq_v" disabled style="opacity:0"><div class="def" style="margin:0;padding:8px 10px;font-size:13px">'+sel.liquidez+'</div></div>'
      +'</div>'
      +'<div class="strip" style="margin:12px 0 0">'
