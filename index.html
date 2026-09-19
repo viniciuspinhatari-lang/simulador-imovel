@@ -330,6 +330,32 @@ function svgLinha(cfg){
   if(cfg.xlab)g+='<text x="'+(W-mr)+'" y="'+(H-0)+'" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono,monospace">'+esc(cfg.xlab)+'</text>';
   return '<svg viewBox="0 0 '+W+' '+(H+(cfg.xlab?8:0))+'" role="img">'+g+'</svg>';
 }
+/* ---------------------------------------------------------------------
+   Barras horizontais. Linha (polyline) significa "isto corre no tempo":
+   ano 1, ano 2, ano 3. Quando o eixo X e uma LISTA DE CENARIOS — entrada
+   de 390 mil, de 410 mil... — a linha mente, porque sugere trajetoria
+   onde existe so comparacao. Cenario se compara com barra.
+   As barras partem do zero de propósito: e o unico jeito de a altura ser
+   proporcional ao valor, sem exagerar diferenca pequena.
+--------------------------------------------------------------------- */
+function svgBarras(cfg){
+  const it=cfg.itens, h=cfg.h||34, ml=cfg.ml||150, mr=cfg.mr||130, W=760;
+  const H=it.length*h+14;
+  const max=Math.max.apply(null,it.map(function(x){return Math.abs(x.val);}).concat([1]));
+  var g='';
+  it.forEach(function(x,i){
+    const y=i*h+7, bw=(W-ml-mr)*(Math.abs(x.val)/max);
+    const forte=!!x.marca;
+    g+='<text x="'+(ml-10)+'" y="'+(y+h/2-3)+'" text-anchor="end" dominant-baseline="middle" font-size="12.5" '
+      +'font-family="IBM Plex Mono,monospace" fill="'+(forte?'var(--ink)':'var(--muted)')+'"'+(forte?' font-weight="700"':'')+'>'+esc(x.rot)+'</text>';
+    g+='<rect x="'+ml+'" y="'+(y+3)+'" width="'+Math.max(1,bw).toFixed(1)+'" height="'+(h-13)+'" rx="3" fill="'+x.cor+'"'
+      +(forte?' stroke="var(--ink)" stroke-width="1.5"':'')+'/>';
+    g+='<text x="'+(ml+bw+9)+'" y="'+(y+h/2-3)+'" dominant-baseline="middle" font-size="12.5" '
+      +'font-family="IBM Plex Mono,monospace" fill="var(--ink)"'+(forte?' font-weight="700"':'')+'>'+esc(cfg.fmtV(x.val))
+      +(x.nota?'<tspan fill="var(--muted)" font-size="11"> '+esc(x.nota)+'</tspan>':'')+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img">'+g+'</svg>';
+}
 function figura(titulo,sub,svg,legenda,tabela,comoLer){ return '<div class="fig"><h4>'+esc(titulo)+'</h4><p class="sub">'+sub+'</p>'+svg
   +(legenda?'<div class="leg">'+legenda.map(l=>'<span><i style="background:'+l[1]+'"></i>'+esc(l[0])+'</span>').join('')+'</div>':'')
   +(comoLer?'<details class="ler"><summary>▸ Como ler este gráfico</summary><div class="lc">'+comoLer+'</div></details>':'')
@@ -737,12 +763,64 @@ function render(modo){
       +' '+(sug.anos>S.prazoRef?'O prazo mais longo não é dívida a mais: a parcela menor libera mais dinheiro para investir todo mês, e a parcela antiga encolhe com a inflação.':sug.anos<S.prazoRef?'O prazo mais curto ganha porque aqui os juros pesam mais do que o rendimento do que sobraria.':''))
    +'</div>'
    +(otimo&&(otimo.entrada!==sug.entrada||otimo.anos!==sug.anos)?'<div class="def"><b>Por que não o máximo absoluto.</b> O cenário que termina com o maior número é entrada de '+fk(otimo.entrada)+' em '+otimo.anos+' anos ('+fk(otimo.patrimH)+', só '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% acima) — mas com parcela de '+fmt(otimo.p1)+' e apenas '+fmt(otimo.aporte1)+' de folga por mês. Diante de '+HOR+' anos de premissas, '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% é ruído; a folga mensal não é. Por isso a sugestão é a de <b>menor parcela entre as que chegam a '+fp(P.ruido||2,0)+'% do topo</b>.</div>':'')
+   +(function(){ const dP=sug.patrimH-seu.patrimH, dParc=seu.p1-sug.p1, dFolga=sug.aporte1-seu.aporte1;
+      return '<div class="card" style="border-color:var(--c2);border-width:1.5px"><h3>O que a sugestão dá, e o que ela cobra</h3>'
+      +'<div class="scroll" style="margin:0"><table><thead><tr><th>o que muda</th><th class="mono">seu plano</th><th class="mono">sugestão</th><th>quem ganha</th></tr></thead><tbody>'
+      +'<tr><td><b>Parcela obrigatória por mês</b><br><small>o que o contrato exige, chova ou faça sol</small></td><td class="mono">'+fmt(seu.p1)+'</td><td class="mono"><b>'+fmt(sug.p1)+'</b></td>'
+        +'<td>'+(dParc>0?'<span class="chip ok">sugestão, '+fmt(dParc)+' a menos</span>':dParc<0?'<span class="chip no">seu plano</span>':'<span class="chip">empate</span>')+'</td></tr>'
+      +'<tr><td><b>% da renda comprometida</b></td><td class="mono">'+fp(seu.p1/rendaTot*100,1)+'%</td><td class="mono"><b>'+fp(sug.p1/rendaTot*100,1)+'%</b></td>'
+        +'<td>'+(dParc>0?'<span class="chip ok">sugestão</span>':'<span class="chip">—</span>')+'</td></tr>'
+      +'<tr><td><b>Sobra livre todo mês</b><br><small>dinheiro que você escolhe onde pôr, e pode parar se precisar</small></td><td class="mono">'+fmt(seu.aporte1)+'</td><td class="mono"><b>'+fmt(sug.aporte1)+'</b></td>'
+        +'<td>'+(dFolga>0?'<span class="chip ok">sugestão, '+fmt(dFolga)+' a mais</span>':'<span class="chip">—</span>')+'</td></tr>'
+      +'<tr><td><b>Patrimônio em '+HOR+' anos</b><br><small>em R$ de hoje</small></td><td class="mono">'+fk(seu.patrimH)+'</td><td class="mono">'+fk(sug.patrimH)+'</td>'
+        +'<td>'+(Math.abs(dP)/Math.max(1,seu.patrimH)<0.02?'<span class="chip mid">empate técnico ('+fp(Math.abs(dP)/Math.max(1,seu.patrimH)*100,1)+'%)</span>':(dP>0?'<span class="chip ok">sugestão</span>':'<span class="chip no">seu plano, '+fk(-dP)+' a mais</span>'))+'</td></tr>'
+      +'</tbody></table></div>'
+      +'<div class="note '+(dParc>0?'go':'lj')+'" style="margin:10px 0 0"><b>A troca, em uma frase.</b> '
+      +(dParc>0
+        ? 'A sugestão abre mão de '+(dP<0?fk(-dP)+' de patrimônio ('+fp(Math.abs(dP)/Math.max(1,seu.patrimH)*100,1)+'%, dentro do ruído de '+HOR+' anos de premissas)':'nada de patrimônio')
+          +' para tirar <b>'+fmt(dParc)+' por mês</b> da sua obrigação com o banco. Esse dinheiro não some: ele muda de lugar — sai de parcela e vira sobra que <b>você</b> decide onde pôr, e pode interromper se a vida virar.'
+        : 'Neste caso a sugestão não reduz parcela; ela vence pelo patrimônio mesmo.')
+      +'</div>'
+      +'<div class="def" style="margin-top:10px"><b>Por que isso importa mais do que parece.</b> Parcela é obrigação: perdeu o emprego, ela continua igual, e atraso vira juro de mora e risco de perder o imóvel. Aporte é escolha: apertou o mês, você para de aportar e nada acontece. <b>Dois planos com o mesmo patrimônio final não têm o mesmo risco no meio do caminho</b> — e é exatamente isso que a coluna de patrimônio não consegue mostrar.</div></div>'; })()
    +'<div class="note warn"><b>O que esta recomendação não sabe.</b> Ela otimiza um número só: patrimônio no fim, em dinheiro de hoje. Não sabe se você dorme mal com dívida, se vai trocar de emprego, se quer quitar antes. <b>Parcela que cabe com folga vale mais que otimização</b> — se a diferença for pequena, fique com o cenário que te deixa tranquilo.</div>';
 
   /* GRÁFICO 1 — patrimônio final por entrada */
   const curva=grade.map(e=>{const sm=simular(e,sug.anos,orc,HOR); return [e,sm.patrimH,sm.p1,sm.p1>orcTeto||sm.aporte1<0];}).filter(x=>!x[3]);
   if(curva.length>2){
-   html+=figura('Onde o patrimônio termina maior, por tamanho da entrada',
+   const piorC=Math.min.apply(null,curva.map(function(x){return x[1];}));
+   /* o ponto da grade mais proximo de cada marca. Tolerancia fixa marcava
+      dois vizinhos quando o passo da grade era menor que a tolerancia. */
+   const perto=function(alvo){ return curva.reduce(function(p,q){
+     return Math.abs(q[0]-alvo)<Math.abs(p[0]-alvo)?q:p; })[0]; };
+   const xSua=perto(entradaTot), xSug=perto(sug.entrada);
+   const melhorC=Math.max.apply(null,curva.map(function(x){return x[1];}));
+   /* mostra a VANTAGEM sobre o pior cenario: assim a barra parte do zero de
+      verdade e a diferenca aparece no tamanho real, sem eixo cortado. */
+   html+=figura('Quanto cada entrada rende a mais que a pior delas',
+     'Cada barra é um <b>cenário</b>, não um ano — por isso barra e não linha. Todos financiam em '+sug.anos+' anos e gastam '+fmt(orc)+' por mês. A barra mede <b>quanto aquele cenário termina acima do pior</b>, para a comparação começar no zero e não em eixo cortado.',
+     svgBarras({itens:curva.map(function(x){
+        const ehSua=x[0]===xSua, ehSug=x[0]===xSug;
+        const rot=(ehSua&&ehSug)?'← a sua e a sugerida':(ehSug?'← sugerida':(ehSua?'← a sua':''));
+        return {rot:'entrada '+fk(x[0]), val:x[1]-piorC, cor:ehSug?C2:(ehSua?C1:'var(--line2)'),
+                marca:ehSua||ehSug, nota:rot};}), fmtV:fk}),
+     null, null,
+     '<ul><li><b>Barra maior = mais patrimônio no fim.</b> A barra mede a distância até o pior cenário da lista, então a menor sempre fica em zero.</li>'
+      +'<li><b>A diferença inteira é de '+fk(melhorC-piorC)+'</b>, ou '+fp((melhorC/piorC-1)*100,1)+'% — depois de '+HOR+' anos. É pouco, e é essa a informação principal deste gráfico: <b>o tamanho da entrada quase não muda o resultado final</b>.</li>'
+      +'<li><b>Por isso a sugestão não é a barra maior.</b> Quando a diferença de patrimônio é ruído, o que decide é outra coisa — a parcela que você assume todo mês. Veja o gráfico seguinte.</li>'
+      +'<li><b>Não é o tempo passando.</b> Andar para baixo na lista é dar mais entrada, não esperar mais anos.</li></ul>');
+   /* ---- o outro lado da moeda: a parcela que cada cenario obriga ---- */
+   html+=figura('E quanto cada entrada obriga você a pagar por mês',
+     'As mesmas linhas do gráfico acima, medindo agora a <b>primeira parcela</b> — o valor que vira obrigação contratual por '+sug.anos+' anos. Aqui a ordem se inverte.',
+     svgBarras({itens:curva.map(function(x){
+        const ehSua=x[0]===xSua, ehSug=x[0]===xSug;
+        const rot=(ehSua&&ehSug)?' ← a sua e a sugerida':(ehSug?' ← sugerida':(ehSua?' ← a sua':''));
+        return {rot:'entrada '+fk(x[0]), val:x[2], cor:ehSug?C2:(ehSua?C1:'var(--line2)'),
+                marca:ehSua||ehSug, nota:fp(x[2]/rendaTot*100,0)+'% da renda'+rot};}), fmtV:fmt}),
+     null, null,
+     '<ul><li><b>Aqui a barra menor é a melhor.</b> Parcela é obrigação: se a renda cair, ela continua igual.</li>'
+      +'<li><b>É este o gráfico que explica a sugestão.</b> Ela abre mão de '+fk(melhorC-sug.patrimH)+' de patrimônio (ruído, depois de '+HOR+' anos) para derrubar a parcela em <b>'+fmt(Math.max(0,seu.p1-sug.p1))+' por mês</b>.</li>'
+      +'<li><b>Patrimônio parecido, risco diferente.</b> Os dois cenários terminam quase no mesmo lugar; o que muda é quanto do seu mês fica preso num contrato de '+sug.anos+' anos.</li></ul>');
+   if(false)html+=figura('Onde o patrimônio termina maior, por tamanho da entrada',
      (function(){ const ys=curva.map(x=>x[1]), yM=Math.max(...ys), ym=Math.min(...ys);
        return 'Todos os pontos: financiar em <b>'+sug.anos+' anos</b>, gastando '+fmt(orc)+' por mês (parcela + o que sobra investido), e medir tudo em <b>'+HOR+' anos</b> — o mesmo ponto para todos, senão prazos diferentes não se comparam. Depois de quitado, o orçamento inteiro vai para investimento.'
         +'<br><b>Cuidado com a escala:</b> o eixo vertical vai de '+fk(ym)+' a '+fk(yM)+' — não começa em zero. Do melhor ao pior cenário a diferença é de <b>'+fk(yM-ym)+'</b>, ou <b>'+fp((yM/ym-1)*100,1)+'%</b> do total. A linha desce de verdade, mas a inclinação no desenho é bem maior que a diferença na vida.'; })(),
@@ -856,6 +934,7 @@ function render(modo){
      +'<div class="def"><b>A conta que liga o 2 ao 3, inteira.</b> Montante de '+fk(linha(meu).hoje)+' × '+fp(tr,2)+'% ao ano = '+fk(linha(meu).hoje*tr/100)+' por ano ÷ 12 = <b>'+fmt(linha(meu).renda)+' por mês</b>. Nada além disso. Se quiser sacar mais que isso, o montante encolhe em poder de compra e a renda cai nos anos seguintes.</div>'
      +'<h3>Quanto cada aporte mensal vira, em '+HOR+' anos</h3>'
      +'<p>Uma linha por valor de aporte. <b>Só o aporte muda</b> — o ponto de partida ('+fk(capIni)+'), o prazo e a taxa são os mesmos em todas.</p>'
+     +'<div class="note warn"><b>Por que o número aqui é menor que o do cenário recomendado.</b> Lá em cima, o dinheiro investido da sugestão chega a <b>'+fk(sug.cartH)+'</b>; aqui, com '+fmt(meu)+' por mês, dá <b>'+fk(linha(meu).hoje)+'</b>. Não há erro em nenhum dos dois: <b>esta tabela supõe que você guarda o mesmo valor todos os meses, por '+HOR+' anos</b>. Lá, o valor guardado <b>cresce sozinho</b> — como a parcela do SAC cai todo mês, sobra mais para investir a cada ano, começando em '+fmt(sug.aporte1)+' e subindo. São duas perguntas diferentes: <i>"e se eu guardar sempre X?"</i> (esta tabela) e <i>"quanto sobra de verdade, mês a mês, no plano inteiro?"</i> (o cenário recomendado).</div>'
      +'<div class="scroll"><table><thead><tr><th class="mono">se você guardar por mês</th><th class="mono">vira, em R$ de hoje</th><th class="mono">o mesmo, nominal</th><th class="mono">renda por mês</th><th class="mono">% do seu salário</th><th>leitura</th></tr></thead><tbody>'
      +L.map(x=>'<tr'+(Math.abs(x.ap-meu)<25?' class="hl"':'')+'><td class="mono"><b>'+fmt(x.ap)+'</b>'+(Math.abs(x.ap-meu)<25?' <span class="chip ok">o seu</span>':'')+'</td>'
        +'<td class="mono"><b>'+fk(x.hoje)+'</b></td><td class="mono">'+fk(x.nom)+'</td><td class="mono"><b>'+fmt(x.renda)+'</b></td>'
