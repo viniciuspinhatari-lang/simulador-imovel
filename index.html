@@ -140,7 +140,21 @@ details.gloss dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap
 details.gloss dt{font-weight:700;font-family:"IBM Plex Mono",monospace;font-size:12.5px;white-space:nowrap}
 details.gloss dd{margin:0;color:var(--muted);line-height:1.6}
 @media(max-width:640px){details.gloss dl{grid-template-columns:1fr;gap:2px} details.gloss dd{margin:0 0 8px}}
-h2[id]{scroll-margin-top:14px}
+h2[id]{scroll-margin-top:64px}
+.secD{scroll-margin-top:64px}
+/* barra fixa: faz o papel de aba vertical sem roubar largura da tabela */
+#barra{position:sticky;top:0;z-index:40;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  background:color-mix(in srgb,var(--ground) 92%,transparent);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);padding:8px 0;margin:0 0 14px}
+#barra select{flex:1 1 240px;min-width:0;max-width:460px;font-family:"Source Sans 3",sans-serif;font-size:13.5px;padding:7px 9px}
+#barra button{background:var(--surface);color:var(--muted);border:1px solid var(--line2);
+  border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:500;white-space:nowrap}
+#barra button:hover{color:var(--ink);border-color:var(--accent)}
+#barra .cont{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+@media(max-width:640px){#barra{padding:7px 0}#barra button{padding:6px 9px;font-size:12px}}
+/* toda secao vira sanfona, inclusive as do formulario */
+.secD>summary h2{font-size:17px}
+.secD>summary::before{align-self:flex-start;margin-top:2px}
 .def{font-size:13.5px;color:var(--muted);background:var(--surface2);border-radius:6px;padding:7px 11px;margin:4px 0 10px}
 .def b{color:var(--ink)}
 footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
@@ -547,7 +561,7 @@ function render(modo){
   (function(){
     const TIP=invTipos(S.selic), sel=TIP.find(function(x){return x.k===S.invTipo;})||TIP[0];
     const trM=(S.invTipo==='mix')?mixReal():realProj();
-    html+='<div class="card" style="border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--surface));margin:18px 0 6px">'
+    html+='<div id="cartaoInvest" class="card" style="border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--surface));margin:18px 0 6px">'
      +'<h3 style="margin-top:0;font-size:18px">Quanto você vai investir por mês — e em quê</h3>'
      +'<p style="margin:0 0 12px">Estes dois campos mudam a página inteira: parcelas, cenário recomendado, projeções e o mapa de planejamento. <b>Mexa neles à vontade</b> — recalcula sozinho e fica salvo neste navegador.</p>'
      +'<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">'
@@ -1178,6 +1192,7 @@ function render(modo){
     const meu=Math.max(0,S.aporte>0?S.aporte:sug.aporte1);
     /* escada de aportes em torno do seu, para ver a sensibilidade */
     const esc=[...new Set([250,500,1000,Math.round(meu/50)*50,2000,3000,5000].filter(x=>x>0))].sort((a,b)=>a-b);
+    const esc2=esc;
     const linha=ap=>{ const se=projAporte(capIni,ap,HOR,tr); const f=se[se.length-1];
       return {ap,hoje:f.hoje,nom:f.nom,renda:rendaDe(f.hoje,tr),pct:rendaDe(f.hoje,tr)/rendaTot*100}; };
     const L=esc.map(linha);
@@ -1212,6 +1227,28 @@ function render(modo){
        ['o mesmo, nominal','O mesmo montante em reais daquele ano futuro. O número é maior e impressiona mais, mas compra a mesma coisa que a coluna anterior.'],
        ['renda por mês','O que esse montante paga por mês sem encolher: montante × '+fp(tr,2)+'% ÷ 12.'],
        ['% do seu salário','Essa renda comparada com os '+fmt(rendaTot)+' que você ganha hoje. Em 100%, a renda sozinha cobre o seu padrão de vida atual.']],'O que significa cada coluna desta tabela')
+     +(function(){ const hs=[5,10,15,20,25,30,35].filter(function(y){return y<=HOR;});
+        if(hs[hs.length-1]!==HOR)hs.push(HOR);
+        const cel=function(ap,y){ const se=projAporte(capIni,ap,y,tr); const f=se[se.length-1];
+          return f?{m:f.hoje, r:rendaDe(f.hoje,tr)}:null; };
+        return '<h3 style="margin-top:16px">O mesmo aporte, em cada horizonte</h3>'
+        +'<p>A tabela acima fixa '+HOR+' anos. Esta abre o leque: <b>cada coluna é um prazo diferente</b>, em blocos de cinco anos. Serve para casar o aporte com a data em que você vai precisar — faculdade do filho em 15 anos não é a mesma conta que aposentadoria em 35.</p>'
+        +'<div class="scroll"><table><thead><tr><th class="mono">guardando por mês</th>'
+        +hs.map(function(y){ return '<th class="mono">'+y+' anos<br><span style="font-weight:400;text-transform:none">você com '+(S.idade+y)+'</span></th>'; }).join('')
+        +'</tr></thead><tbody>'
+        +esc2.map(function(ap){ const ehMeu=Math.abs(ap-meu)<25;
+           return '<tr'+(ehMeu?' class="hl"':'')+'><td class="mono"><b>'+fmt(ap)+'</b>'+(ehMeu?' <span class="chip ok">o seu</span>':'')+'</td>'
+            +hs.map(function(y){ const c=cel(ap,y); if(!c)return '<td class="mono">—</td>';
+               const pc=c.r/rendaTot*100;
+               return '<td class="mono"><b>'+fk(c.m)+'</b>'
+                +'<span class="h" style="display:block;font-size:10.5px;color:var(--muted)">'+fmt(c.r)+'/mês</span>'
+                +'<span class="h" style="display:block;font-size:10px" class="'+(pc>=100?'pos':'')+'">'+fp(pc,0)+'% do salário</span></td>'; }).join('')
+            +'</tr>'; }).join('')
+        +'</tbody></table></div>'
+        +gloss([['guardando por mês','O aporte constante, todo mês, pelo prazo inteiro daquela coluna.'],
+          ['cada coluna','O montante acumulado ao fim daquele prazo, <b>em R$ de hoje</b>. Embaixo, em letra menor: a renda mensal que esse montante passaria a pagar, e quanto isso representa do seu salário atual.'],
+          ['por que as colunas crescem tão desigualmente','Juro composto. De 5 para 10 anos o montante mais que dobra; de 30 para 35, o salto é muito maior em reais, porque a mesma taxa incide sobre um bolo muito maior. <b>Os últimos cinco anos valem mais que os primeiros quinze.</b>']],'Como ler esta tabela')
+        +'<div class="note lj"><b>Para casar com o seu objetivo.</b> Procure a coluna do prazo que você tem e desça até a linha do aporte que cabe no seu mês. Se o número não serve, as saídas são três, nessa ordem de eficácia: <b>mais prazo</b> (a coluna à direita), <b>mais aporte</b> (a linha abaixo), ou aceitar um objetivo menor. Prazo é a alavanca mais forte das três — e a única que você não consegue comprar depois.</div>'; })()
      +'<div class="note lj"><b>O que esta tabela mostra de mais útil.</b> A distância entre as linhas é o preço de cada decisão mensal. Dobrar o aporte não dobra o resultado final, porque parte do montante vem do capital inicial — mas a diferença entre guardar '+fmt(esc[0])+' e '+fmt(esc[esc.length-1])+' por mês, ao longo de '+HOR+' anos, é de <b>'+fk(L[L.length-1].hoje-L[0].hoje)+'</b> em dinheiro de hoje.</div>'
      +'<div class="note warn"><b>Toda esta seção depende de uma premissa só:</b> render '+fp(tr,2)+'% acima da inflação, todo ano, por '+HOR+' anos. Hoje dá para travar isso num Tesouro IPCA+ longo, mas só até o vencimento dele — depois você reinveste ao que o mercado pagar naquele dia. <b>É o maior risco da projeção</b>, e ele está medido na tabela "E se a taxa real não for '+fp(tr,2)+'%?", acima.</div>'
      +'<div class="def"><b>De onde vem este motor.</b> A projeção de aporte é a mesma usada na plataforma V2P (<span class="mono">projSim</span>), adaptada: trabalha em R$ de hoje e devolve o nominal por multiplicação, em vez de inflar e desinflar. <b>Divergência registrada:</b> a plataforma projeta FI-Infra a IPCA+'+fp(P.divergencia.fiPlataforma,1)+'% e debênture a IPCA+'+fp(P.divergencia.debPlataforma,1)+'%; o alvo de carteira anotado é IPCA+'+fp(P.divergencia.debAlvoCarteira,1)+'%; este simulador usa IPCA+'+fp(P.inv.fiReal,1)+'% e IPCA+'+fp(P.inv.debReal,1)+'%. Os quatro números estão aqui de propósito — nenhum foi apagado em favor do outro. Os desta página são editáveis nos parâmetros.</div>';
@@ -1410,10 +1447,17 @@ function fechar(form,html){
   const numerar=h=>h.replace(/<h2>([\s\S]*?)<\/h2>/g,(m,t)=>{ nsec++; const id='sec'+nsec; const lim=t.replace(/^\s*\d+[a-z]?\.\s*/,''); tit.push([id,lim]); return '<h2 id="'+id+'">'+nsec+'. '+lim+'</h2>'; });
   if(form!==null)form=numerar(form);
   html=numerar(html);
-  const NAVHTML='<nav id="indice"><h3>Índice — o que tem nesta página</h3><ol>'
+  const BARRA='<div id="barra">'
+    +'<select id="irPara" title="pular para uma seção"><option value="">▾ ir para a seção…</option>'
+    +tit.map(function(x,k){ return '<option value="#'+x[0]+'">'+(k+1)+'. '+x[1].replace(/<[^>]+>/g,'')+'</option>'; }).join('')
+    +'</select>'
+    +'<button type="button" onclick="modoTudo(true)">abrir todas</button>'
+    +'<button type="button" onclick="modoTudo(false)">fechar todas</button>'
+    +'<span class="cont" id="contSec"></span></div>';
+  const NAVHTML=BARRA+'<nav id="indice"><h3>Índice — o que tem nesta página</h3><ol>'
     +tit.map(([id,t])=>'<li><a href="#'+id+'">'+t.replace(/<[^>]+>/g,'')+'</a></li>').join('')
     +'</ol><p class="meta" style="margin:10px 0 0">As seções com <b>＋</b> são consulta: ficam fechadas para a página respirar e abrem com um clique. Cada tabela tem um bloco <b>"O que significa cada coluna"</b>, e textos longos mostram a primeira frase com um <b>mais</b> ao lado.</p></nav>'
-    +'<div class="modo"><span>Textos e seções:</span><button class="ghost sm" onclick="modoTudo(true)">abrir tudo</button><button class="ghost sm" onclick="modoTudo(false)">fechar tudo</button></div>';
+    +'<p class="meta" style="margin:10px 0 0">Todas as 16 seções abrem e fecham com um clique no título. A barra no alto da página fica sempre à mão para pular direto ou abrir e fechar todas de uma vez — e a página lembra o que você deixou aberto.</p>';
   if(form!==null)form=NAVHTML+form; /* no render parcial o índice não muda: mantém o que está na tela */
   if(form===null){ /* mantém em dia os campos que o formulário só exibe */
     const rt=document.getElementById('rendaTotal');
@@ -1427,8 +1471,9 @@ function fechar(form,html){
   dobrarSecoes(document.getElementById('res'));
   condensar(document.getElementById('res'));
   try{ if(localStorage.getItem('v2p-imovel-modo')==='tudo')modoTudo(true); }catch(e){}
-  if(form!==null)condensar(document.getElementById('frm'));
+  if(form!==null){ dobrarSecoes(document.getElementById('frm')); condensar(document.getElementById('frm')); }
   ligarTip();
+  ligarBarra();
   rodape();
 }
 /* Deixa visível a primeira frase (a afirmação) e esconde o resto atrás de um
@@ -1482,27 +1527,43 @@ function resumoSecao(t){
   for(const [re,txt] of k)if(re.test(t))return txt;
   return null;
 }
+/* Quais secoes o usuario deixou abertas. Guardado por id (sec1..sec16),
+   que e estavel porque a numeracao e sequencial a cada render. */
+function lerAbertas(){ try{ return JSON.parse(localStorage.getItem('v2p-imovel-abertas'))||{}; }catch(e){ return {}; } }
+function gravarAberta(id,aberta){ try{ const m=lerAbertas(); m[id]=aberta;
+  localStorage.setItem('v2p-imovel-abertas',JSON.stringify(m)); }catch(e){} }
+
 function dobrarSecoes(root){
   const cont=root||document.getElementById('res'); if(!cont)return;
+  const abertas=lerAbertas();
   const filhos=Array.from(cont.children);
   let i=0;
   while(i<filhos.length){
     const el=filhos[i];
     if(el.tagName==='H2'){
       const resumo=resumoSecao(el.textContent);
-      if(resumo){
+      {
         const bloco=[el]; let j=i+1;
-        while(j<filhos.length&&filhos[j].tagName!=='H2'){ bloco.push(filhos[j]); j++; }
+        /* o cartao do investimento mensal nao pode ser engolido pela secao
+           anterior: ele e destaque, e some se aquela secao fechar */
+        while(j<filhos.length&&filhos[j].tagName!=='H2'&&filhos[j].id!=='cartaoInvest'){ bloco.push(filhos[j]); j++; }
         const d=document.createElement('details'); d.className='secD';
         const sm=document.createElement('summary');
-        sm.innerHTML='<h2>'+el.textContent+'</h2><span class="tl">'+resumo+'</span>';
+        sm.innerHTML='<h2>'+el.textContent+'</h2>'+(resumo?'<span class="tl">'+resumo+'</span>':'');
         const sd=document.createElement('div'); sd.className='sd';
         bloco.forEach(b=>sd.appendChild(b));
         d.appendChild(sm); d.appendChild(sd);
         cont.insertBefore(d,filhos[j]||null);
         /* o índice precisa continuar levando até aqui */
         d.id=el.id; el.removeAttribute('id');
-        d.addEventListener('toggle',()=>{ if(d.open)d.scrollIntoView({block:'nearest'}); });
+        /* o que ja estava aberto continua aberto; as de consulta (as que tem
+           resumo de uma linha) nascem fechadas, como antes */
+        d.open = (d.id&&abertas[d.id]!==undefined) ? !!abertas[d.id] : !resumo;
+        d.addEventListener('toggle',function(){
+          if(d.id)gravarAberta(d.id,d.open);
+          if(d.open)d.scrollIntoView({block:'nearest'});
+          atualizarContador();
+        });
         i=j; continue;
       }
     }
@@ -1514,8 +1575,26 @@ function dobrarSecoes(root){
       if(alvo&&alvo.tagName==='DETAILS'&&!alvo.open){ alvo.open=true; } };
   });
 }
+function atualizarContador(){
+  const el=document.getElementById('contSec'); if(!el)return;
+  const t=document.querySelectorAll('.secD'), ab=document.querySelectorAll('.secD[open]');
+  el.textContent=t.length?ab.length+' de '+t.length+' abertas':'';
+}
+function ligarBarra(){
+  const sel=document.getElementById('irPara');
+  if(sel&&!sel.dataset.lig){ sel.dataset.lig='1';
+    sel.onchange=function(){ const h=sel.value; sel.selectedIndex=0; if(!h)return;
+      const alvo=document.querySelector(h);
+      if(alvo){ if(alvo.tagName==='DETAILS')alvo.open=true;
+        alvo.scrollIntoView({behavior:'smooth',block:'start'}); } };
+  }
+  atualizarContador();
+}
 function modoTudo(abrir){
   document.querySelectorAll('.secD,details.ler,details.gloss').forEach(d=>d.open=abrir);
+  try{ const m={}; document.querySelectorAll('.secD').forEach(function(d){ if(d.id)m[d.id]=abrir; });
+    localStorage.setItem('v2p-imovel-abertas',JSON.stringify(m)); }catch(e){}
+  atualizarContador();
   document.querySelectorAll('.resto').forEach(r=>r.classList.toggle('on',abrir));
   document.querySelectorAll('.maisLink').forEach(b=>b.textContent=abrir?'menos ⌃':'mais ⌄');
   try{localStorage.setItem('v2p-imovel-modo',abrir?'tudo':'resumo');}catch(e){}
