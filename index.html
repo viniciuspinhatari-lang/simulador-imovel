@@ -228,7 +228,11 @@ function saveS(){ try{localStorage.setItem('v2p-imovel-estado',JSON.stringify(S)
 
 /* ============ MOTOR ============ */
 const fmt=v=>'R$ '+(Math.round(v*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fk=v=>'R$ '+Math.round(v/1000).toLocaleString('pt-BR')+' mil';
+const fk=v=>{ const a=Math.abs(v);
+  /* acima de 1 milhao, "R$ 2.720 mil" confunde: o ponto e separador de
+     milhar. Vira "R$ 2,72 mi", que se le de primeira. */
+  return a>=1e6 ? 'R$ '+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' mi'
+                : 'R$ '+Math.round(v/1000).toLocaleString('pt-BR')+' mil'; };
 const fp=(v,d=2)=>(+v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
 const nfMil=v=>(v===''||v==null||isNaN(v))?'':Math.round(v).toLocaleString('pt-BR');
 const parseMil=t=>{ const d=String(t==null?'':t).replace(/[^\d]/g,''); return d===''?0:+d; };
@@ -704,7 +708,7 @@ function render(modo){
          /* se as duas caem no mesmo ponto, uma etiqueta so — senao elas se cobrem */
          if(Math.abs(sx-px)>(hi-lo)/60)m.push({x:sx,y:alturaEm(pts,sx),cor:C2,rot:'sugerida'});
          return m; })(),
-       fx:v=>'R$ '+Math.round(v/1000)+'k', ylab:'patrimônio em '+HOR+' anos, em R$ de hoje ↑', xlab:'entrada →',
+       fx:fk, ylab:'patrimônio em '+HOR+' anos, em R$ de hoje ↑', xlab:'entrada →',
        fxTip:v=>'entrada de '+fk(v), fyTip:v=>v==null?'—':fk(v), h:250}),
      null,
      '<div class="scroll"><table><thead><tr><th class="mono">entrada</th><th class="mono">1ª parcela</th><th class="mono">patrimônio em R$ de hoje</th></tr></thead><tbody>'
