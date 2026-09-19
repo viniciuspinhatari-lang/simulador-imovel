@@ -186,6 +186,19 @@ const DEF={
   divergencia:{ fiPlataforma:6.5, debPlataforma:9.9, debAlvoCarteira:11.0,
                 nota:'V2P (plataforma) · alvo do CLAUDE.md · padrão deste simulador' },
   cons:{ adm:20, fr:2, meses:200, lance:25 },
+  /* Alocacoes de referencia. A coluna "V2P" e a alocacao-alvo real da
+     carteira da casa (rv 30 · deb 35 · tes 15 · cx 10 · br 10), trazida da
+     plataforma. As outras tres sao variacoes dela por prazo e tolerancia.
+     Sao REFERENCIA publica, nao recomendacao personalizada. */
+  alocs:{
+   curto:   {n:'Vou precisar em ate 2 anos',      cx:70, tes:30, deb:0,  fi:0,  rv:0},
+   medio:   {n:'Entre 2 e 5 anos',                cx:30, tes:35, deb:25, fi:10, rv:0},
+   longo:   {n:'Mais de 5 anos, sem data',        cx:10, tes:15, deb:35, fi:25, rv:15},
+   v2p:     {n:'Alocação-alvo da carteira V2P',   cx:10, tes:15, deb:35, fi:10, rv:30}
+  },
+  alocFonte:'A linha V2P é a alocação-alvo real da carteira da casa (setembro/2026). As demais são variações dela por prazo.',
+  classes:{cx:'Caixa e liquidez diária',tes:'Tesouro (IPCA+ e Selic)',deb:'Debênture incentivada',fi:'FI-Infra',rv:'Renda variável'},
+  qualifMin:1000000,
   consAdm:[['Rodobens','a partir de 9,5%','24–216','2026-06','idinheiro'],['Banco do Brasil','a partir de 17%','até 200','2026-06','idinheiro'],['Itaú','a partir de 17%','até 228','2026-06','idinheiro'],['Embracon','a partir de 20%','—','2026-06','idinheiro'],['Porto','~23%','até 200','2026-06','idinheiro'],['Caixa','sob consulta','até 200','2026-06','idinheiro']],
   mipFaixas:[[40,0.0225],[50,0.0395],[999,0.065]], dfi:0.006,
   bancos:[
@@ -233,7 +246,7 @@ function resetP(){ P=JSON.parse(JSON.stringify(DEF)); saveP(); render(); }
 
 /* ============ ESTADO DO USUÁRIO ============ */
 const S0={perfil:'clt',fgts:true,cidade:'Recife',valor:720000,caixa:500000,entrada:400000,fgtsEnt:0,
-  renda:12000,comp:[0,0],taxa:10.26,taxaPort:9.0,idade:39,prazos:[20,25,30],prazoRef:30,selic:13.75,invTipo:'lci',aporte:500,usarLongo:true,custosFin:false,sistema:'sac',primeiro:true,custosNoCaixa:true};
+  renda:12000,comp:[0,0],taxa:10.26,taxaPort:9.0,idade:39,prazos:[20,25,30],prazoRef:30,selic:13.75,invTipo:'lci',aporte:500,perfPrazo:'longo',perfReserva:'nao',perfQueda:'segura',perfMeses:6,usarLongo:true,custosFin:false,sistema:'sac',primeiro:true,custosNoCaixa:true};
 let S=(function(){ try{const s=localStorage.getItem('v2p-imovel-estado'); if(s)return Object.assign({},S0,JSON.parse(s));}catch(e){} return Object.assign({},S0); })();
 function saveS(){ try{localStorage.setItem('v2p-imovel-estado',JSON.stringify(S));}catch(e){} }
 
@@ -602,6 +615,66 @@ function render(modo){
   if(!ok){ html+='<div class="note stop"><b>Falta ajustar '+(probs.length>1?'estes campos':'este campo')+' para eu calcular o resto:</b><ul style="margin:8px 0 0;padding-left:20px;line-height:1.7">'
     +probs.map(t=>'<li>'+t+'</li>').join('')+'</ul><p style="margin:10px 0 0">O restante da página (parcelas, curva de entrada, portabilidade, bancos, cidade, seguros e consórcio) aparece assim que isso for resolvido — nada foi perdido.</p></div>';
     fechar(SO_RES?null:FORM,html); bind(SO_RES); return; }
+  /* ===== PERFIL DE INVESTIDOR — imovel e investimento andam juntos ===== */
+  (function(){
+    const A=P.alocs, CL=P.classes;
+    const parcRef=sac(fin,S.prazoRef,S.taxa,S.idade).p1;
+    const mesesRes=Math.max(1,+S.perfMeses||6);
+    const reserva=parcRef*mesesRes;
+    const disp=Math.max(0,sobra);
+    const paraInvestir=Math.max(0,disp-reserva);
+    const faltaRes=Math.max(0,reserva-disp);
+    /* o prazo manda; a tolerancia so rebaixa, nunca promove */
+    let k=S.perfPrazo||'longo';
+    if(S.perfQueda==='vendo'){ k=(k==='longo')?'medio':(k==='medio'?'curto':k); }
+    if(S.perfReserva==='nao'&&faltaRes>0)k='curto';
+    const al=A[k]||A.longo;
+    const ordem=['cx','tes','deb','fi','rv'];
+    html+='<h2>Perfil de investidor — onde entra a sobra, e o que muda por ter uma parcela</h2>'
+     +'<p>Comprar imóvel e investir não são decisões separadas: <b>a parcela muda o seu perfil</b>. Quem assume '+fmt(parcRef)+' por mês de obrigação precisa de mais dinheiro parado e líquido do que quem não assume — e isso sai de onde sairia o investimento.</p>'
+     +'<div class="card"><div class="grid">'
+     +'<div><label>Quando você vai precisar desse dinheiro</label><select id="pf_prazo">'
+       +Object.keys(A).filter(function(x){return x!=='v2p';}).map(function(x){return '<option value="'+x+'"'+(S.perfPrazo===x?' selected':'')+'>'+esc(A[x].n)+'</option>';}).join('')+'</select></div>'
+     +'<div><label>Já tem reserva de emergência separada?</label><select id="pf_res">'
+       +'<option value="sim"'+(S.perfReserva==='sim'?' selected':'')+'>sim, e não é este dinheiro</option>'
+       +'<option value="nao"'+(S.perfReserva!=='sim'?' selected':'')+'>não, sai daqui</option></select></div>'
+     +'<div><label>Se a cota cair 20% num mês, você</label><select id="pf_q">'
+       +'<option value="compro"'+(S.perfQueda==='compro'?' selected':'')+'>compro mais</option>'
+       +'<option value="segura"'+(S.perfQueda==='segura'?' selected':'')+'>seguro e não mexo</option>'
+       +'<option value="vendo"'+(S.perfQueda==='vendo'?' selected':'')+'>vendo para parar a perda</option></select></div>'
+     +'<div><label>Reserva: quantos meses de parcela</label><input id="pf_m" type="number" min="1" max="24" step="1" value="'+mesesRes+'"></div>'
+     +'</div></div>'
+     +'<div class="strip">'
+     +'<div class="tile"><small>sobra depois da entrada e custos</small><b>'+fk(disp)+'</b><span class="h">é este o dinheiro em jogo</span></div>'
+     +'<div class="tile"><small>reserva de emergência</small><b>'+fk(reserva)+'</b><span class="h">'+mesesRes+' × a parcela de '+fmt(parcRef)+'</span></div>'
+     +'<div class="tile"><small>sobra para investir</small><b class="'+(paraInvestir>0?'pos':'neg')+'">'+fk(paraInvestir)+'</b><span class="h">'+(faltaRes>0?'faltam '+fk(faltaRes)+' para a reserva':'depois da reserva')+'</span></div>'
+     +'<div class="tile"><small>mais, por mês</small><b>'+fmt(S.aporte>0?S.aporte:0)+'</b><span class="h">o aporte que você declarou</span></div></div>'
+     +(faltaRes>0
+       ? '<div class="note stop"><b>A reserva vem antes do investimento.</b> Com uma parcela de '+fmt(parcRef)+', '+mesesRes+' meses de fôlego custam <b>'+fk(reserva)+'</b>, e você tem '+fk(disp)+' sobrando — faltam <b>'+fk(faltaRes)+'</b>. Enquanto isso não fecha, <b>a alocação abaixo é toda em caixa</b>, de propósito. Investir em papel de prazo longo sem reserva é a receita para vender no pior momento, porque a vida não espera o mercado. Se não fechar, as saídas são: reduzir a entrada, adiar a compra, ou baixar o valor do imóvel.</div>'
+       : '<div class="note go"><b>A reserva cabe.</b> Separando '+fk(reserva)+' ('+mesesRes+' meses de parcela), ainda restam <b>'+fk(paraInvestir)+'</b> para investir com prazo.</div>')
+     +'<h3>A alocação de referência para o seu caso</h3>'
+     +'<p>Baseada no <b>prazo</b> que você marcou'+(S.perfQueda==='vendo'?' e rebaixada um nível porque você respondeu que venderia numa queda de 20%':'')+(S.perfReserva==='nao'&&faltaRes>0?', e travada em caixa porque a reserva ainda não está formada':'')+'. <b>É referência pública, não recomendação:</b> a última coluna mostra a alocação-alvo da carteira V2P para você comparar.</p>'
+     +'<div class="scroll"><table><thead><tr><th>classe</th><th class="mono">o seu caso</th><th class="mono">em R$</th><th class="mono">V2P</th><th>o que é, e o risco</th></tr></thead><tbody>'
+     +ordem.map(function(c){ var pc=al[c]||0, vv=paraInvestir*pc/100;
+        return '<tr'+(pc>0?'':' style="opacity:.5"')+'><td><b>'+esc(CL[c])+'</b></td>'
+         +'<td class="mono'+(pc>0?' pos':'')+'"><b>'+pc+'%</b></td>'
+         +'<td class="mono">'+(pc>0?fk(vv):'—')+'</td>'
+         +'<td class="mono">'+(A.v2p[c]||0)+'%</td>'
+         +'<td><small>'+esc({cx:'Liquidez diária para imprevisto. Rende pouco, e é para isso mesmo: não pode oscilar nem ter carência.',
+              tes:'Título público. Sem risco de crédito. O IPCA+ trava taxa real; o Selic é o lugar da reserva.',
+              deb:'Crédito de uma empresa, isento de IR. Paga mais porque pode dar calote — o risco é do emissor, não do mercado.',
+              fi:'Fundo listado que compra debêntures de infraestrutura. Isento de IR, diversifica o calote entre vários emissores, mas a cota oscila em bolsa.',
+              rv:'Ações e fundos imobiliários. Maior retorno esperado no prazo longo, e o único item aqui que pode cair muito e demorar anos para voltar.'}[c])+'</small></td></tr>';}).join('')
+     +'</tbody></table></div>'
+     +gloss([['classe','O tipo de investimento. Não é o produto: dentro de cada classe existem dezenas de opções.'],
+       ['o seu caso','A fatia sugerida pelo prazo e pela tolerância que você marcou acima.'],
+       ['em R$','A mesma fatia aplicada sobre os '+fk(paraInvestir)+' que sobram depois da reserva.'],
+       ['V2P','A alocação-alvo real da carteira desta casa, para comparação. '+esc(P.alocFonte)],
+       ['o que é, e o risco','O que a classe faz e o que pode dar errado nela. Retorno maior sempre vem com risco maior — não existe exceção.']],'O que significa cada coluna')
+     +'<div class="note warn"><b>O que muda por você ter uma parcela.</b> Sem financiamento, dinheiro parado em caixa é custo de oportunidade. <b>Com financiamento, é seguro contra perder o imóvel.</b> Atraso de parcela vira juro de mora e, no limite, execução — então a reserva deixa de ser conselho genérico e vira parte da conta da compra. É por isso que esta seção fica dentro do simulador de imóvel, e não separada.</div>'
+     +'<div class="note lj"><b>Investidor qualificado — o portão que trava alguns produtos.</b> Parte dos produtos (fundos restritos, algumas ofertas) exige ser <b>investidor qualificado</b>: '+fk(P.qualifMin)+' investidos ou certificação técnica. Com '+fk(paraInvestir)+' '+(paraInvestir>=P.qualifMin?'<b>você alcança esse patamar</b> — confirme com a corretora, porque a conta é sobre o total investido, não só este dinheiro.':'<b>você ainda não alcança</b>, e isso não é problema: tudo o que aparece na tabela acima está disponível para qualquer investidor.')+' Desconfie de quem oferecer produto restrito sem verificar isso.</div>'
+     +'<div class="def"><b>Por que três perguntas e não vinte.</b> O que muda a resposta de verdade é: <b>quando você vai precisar do dinheiro</b> (prazo manda em tudo), <b>se existe reserva</b> (sem ela nada mais importa) e <b>o que você faz numa queda</b> (porque a pior perda é a vendida no fundo). Questionário longo dá sensação de precisão e não muda a alocação. Todos os campos são editáveis e ficam salvos neste navegador.</div>';
+  })();
   /* --- 4. resultado por prazo --- */
   const PRAZOS=[20,25,30,35].filter(a=>a<=prazoMaximo(S.idade));
   if(!PRAZOS.length)PRAZOS.push(prazoMaximo(S.idade));
@@ -786,19 +859,24 @@ function render(modo){
          const L=anos.map(function(y){return ln(sug,y);}).filter(Boolean);
          if(!L.length)return '';
          return '<h3 style="margin-top:14px">O mapa: de 5 em 5 anos, sempre reinvestindo</h3>'
-          +'<p>Quanto o dinheiro investido vira e quanta renda mensal ele passa a pagar, a cada bloco de cinco anos. <b>Nada é sacado no caminho</b> — todo rendimento volta para dentro. A renda da última coluna é o que <b>passaria</b> a ser possível sacar naquele ano, se você decidisse parar de reinvestir ali.</p>'
-          +'<div class="scroll"><table><thead><tr>'
-          +'<th class="mono">anos investindo</th><th class="mono">sua idade</th>'
-          +'<th class="mono">guardando por mês<br><span style="font-weight:400;text-transform:none">naquele ano</span></th>'
+          +'<p><b>Esta é a tabela de planejamento.</b> Leia da esquerda para a direita: <b>quando</b> · <b>o que você põe</b> · <b>no que isso vira</b> · <b>o que passa a pagar por mês</b>. Escolha a linha do ano em que você quer parar, e ela diz o que precisa acontecer até lá. Cada bloco de cinco anos. <b>Nada é sacado no caminho</b> — todo rendimento volta para dentro. A renda da última coluna é o que <b>passaria</b> a ser possível sacar naquele ano, se você decidisse parar de reinvestir ali.</p>'
+          +'<div class="scroll"><table><thead>'
+          +'<tr><th class="mono" colspan="2" style="border-right:2px solid var(--line2)">quando</th>'
+            +'<th class="mono" colspan="1" style="border-right:2px solid var(--line2);background:color-mix(in srgb,var(--accent) 8%,var(--surface2))">o que você põe</th>'
+            +'<th class="mono" colspan="2" style="border-right:2px solid var(--line2)">no que isso vira</th>'
+            +'<th class="mono" colspan="3">o que passa a pagar por mês</th></tr>'
+          +'<tr><th class="mono">anos<br><span style="font-weight:400;text-transform:none">investindo</span></th>'
+          +'<th class="mono" style="border-right:2px solid var(--line2)">sua<br><span style="font-weight:400;text-transform:none">idade</span></th>'
+          +'<th class="mono" style="border-right:2px solid var(--line2);background:color-mix(in srgb,var(--accent) 8%,var(--surface2))">guardando por mês<br><span style="font-weight:400;text-transform:none">naquele ano</span></th>'
           +'<th class="mono">montante<br><span style="font-weight:400;text-transform:none">em R$ de hoje</span></th>'
-          +'<th class="mono">montante<br><span style="font-weight:400;text-transform:none">nominal</span></th>'
+          +'<th class="mono" style="border-right:2px solid var(--line2)">montante<br><span style="font-weight:400;text-transform:none">nominal</span></th>'
           +'<th class="mono">renda/mês<br><span style="font-weight:400;text-transform:none">em R$ de hoje</span></th>'
           +'<th class="mono">renda/mês<br><span style="font-weight:400;text-transform:none">nominal</span></th>'
-          +'<th class="mono">% do seu salário</th></tr></thead><tbody>'
+          +'<th class="mono">% do seu<br><span style="font-weight:400;text-transform:none">salário</span></th></tr></thead><tbody>'
           +L.map(function(x){ const pc=x.rReal/rendaTot*100;
-            return '<tr'+(x.y===HOR?' class="hl"':'')+'><td class="mono"><b>'+x.y+' anos</b></td><td class="mono">'+(S.idade+x.y)+'</td>'
-             +'<td class="mono">'+fmt(x.ap)+'<span class="h" style="display:block;font-size:10.5px;color:var(--muted)">'+fmt(x.apH)+' em R$ de hoje</span></td>'
-             +'<td class="mono"><b>'+fk(x.real)+'</b></td><td class="mono">'+fk(x.nom)+'</td>'
+            return '<tr'+(x.y===HOR?' class="hl"':'')+'><td class="mono"><b>'+x.y+' anos</b></td><td class="mono" style="border-right:2px solid var(--line2)">'+(S.idade+x.y)+'</td>'
+             +'<td class="mono" style="border-right:2px solid var(--line2);background:color-mix(in srgb,var(--accent) 5%,transparent)"><b>'+fmt(x.ap)+'</b><span class="h" style="display:block;font-size:10.5px;color:var(--muted)">'+fmt(x.apH)+' em R$ de hoje</span></td>'
+             +'<td class="mono"><b>'+fk(x.real)+'</b></td><td class="mono" style="border-right:2px solid var(--line2)">'+fk(x.nom)+'</td>'
              +'<td class="mono"><b>'+fmt(x.rReal)+'</b></td><td class="mono">'+fmt(x.rNom)+'</td>'
              +'<td class="mono '+(pc>=100?'pos':pc>=50?'wr':'')+'">'+fp(pc,0)+'%'+(pc>=100?' <span class="chip ok">paga seu padrão de vida</span>':'')+'</td></tr>';}).join('')
           +'</tbody></table></div>'
@@ -1396,6 +1474,11 @@ function rodape(){
 let LIVE=null;
 function bind(soRes){
   const g=id=>document.getElementById(id);
+  ['pf_prazo','pf_res','pf_q'].forEach(function(id){ const el=g(id); if(el)el.onchange=function(){
+    lerCampos();
+    if(id==='pf_prazo')S.perfPrazo=el.value; else if(id==='pf_res')S.perfReserva=el.value; else S.perfQueda=el.value;
+    saveS(); render(); }; });
+  { const el=g('pf_m'); if(el)el.onchange=function(){ S.perfMeses=Math.max(1,Math.min(24,+el.value||6)); saveS(); render(); }; }
   ['perfil','fgts','cidade','cidade2','p_prazo','sistema','primeiro','usarLongo','custosFin'].forEach(id=>{const el=g(id); if(el)el.onchange=()=>{ lerCampos(); if(id==='perfil'){S.perfil=el.value; S.fgts=P.perfis[S.perfil].fgts;} else if(id==='fgts')S.fgts=el.value==='1'; else if(id==='cidade'||id==='cidade2')S.cidade=el.value; else if(id==='sistema')S.sistema=el.value; else if(id==='primeiro')S.primeiro=el.value==='1'; else if(id==='usarLongo')S.usarLongo=el.value==='1'; else if(id==='custosFin')S.custosFin=el.value==='1'; else S.prazoRef=+el.value; saveS(); render(); };});
   /* recálculo ao vivo — só a área de resultados é redesenhada, os campos ficam intactos */
   if(!soRes)ligarCampos();
