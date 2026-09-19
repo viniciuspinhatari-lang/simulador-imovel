@@ -165,7 +165,7 @@ footer a{color:var(--accent)}
 <script>
 /* ============ PARÂMETROS — tudo editável, salvo no navegador ============ */
 const DEF={
-  v:2, atualizado:'2026-09-18',
+  v:3, atualizado:'2026-09-19',
   infl:4.5, invest:11.5, custoPort:5000,
   selicRef:13.75, selicData:'2026-09-16 (Copom)',
   finA:6.6, finB:0.34, finDesc:{sbpe:0,caixa:-0.8,cotista:-2.2,coop:-1.0,consig:-2.0,digital:-1.5},
@@ -174,6 +174,17 @@ const DEF={
   regras:{ ltvSac:80, ltvPrice:70, ltvMcmv:90, idadeMax:80.5, prazoMaxMeses:420,
            tetoSfh:2250000, tetoMcmv:600000, itbi:3.0, cartorio:1.5, avaliacao:3100, desc1oImovel:50 },
   inv:{ cdbPct:100, lciPct:90, tesSpread:0.10, tesCust:0.20, ir:15, fiReal:7.5, debReal:8.0, outro:11.5 },
+  /* julgamentos que estavam cravados no codigo. Nao sao fatos: sao regras
+     de bolso, e por isso ficam editaveis (regra 7 do projeto). */
+  limConf:25, limTeto:30, ruido:2,
+  /* o consorcio corrige pelo INCC, nao pelo IPCA. Sem INCC preenchido a
+     conta usa a inflacao como APROXIMACAO, e diz que esta fazendo isso. */
+  incc:null, inccFonte:'não encontrado — usando a inflação como aproximação',
+  /* divergencia registrada, nao sobrescrita (regra 5): a plataforma V2P usa
+     FI-Infra IPCA+6,5% e debenture IPCA+9,9%; o CLAUDE.md poe o alvo de
+     debenture em IPCA+11%; este simulador vinha com 7,5% e 8,0%. */
+  divergencia:{ fiPlataforma:6.5, debPlataforma:9.9, debAlvoCarteira:11.0,
+                nota:'V2P (plataforma) · alvo do CLAUDE.md · padrão deste simulador' },
   cons:{ adm:20, fr:2, meses:200, lance:25 },
   consAdm:[['Rodobens','a partir de 9,5%','24–216','2026-06','idinheiro'],['Banco do Brasil','a partir de 17%','até 200','2026-06','idinheiro'],['Itaú','a partir de 17%','até 228','2026-06','idinheiro'],['Embracon','a partir de 20%','—','2026-06','idinheiro'],['Porto','~23%','até 200','2026-06','idinheiro'],['Caixa','sob consulta','até 200','2026-06','idinheiro']],
   mipFaixas:[[40,0.0225],[50,0.0395],[999,0.065]], dfi:0.006,
@@ -222,7 +233,7 @@ function resetP(){ P=JSON.parse(JSON.stringify(DEF)); saveP(); render(); }
 
 /* ============ ESTADO DO USUÁRIO ============ */
 const S0={perfil:'clt',fgts:true,cidade:'Recife',valor:720000,caixa:500000,entrada:400000,fgtsEnt:0,
-  renda:12000,comp:[0,0],taxa:10.26,taxaPort:9.0,idade:39,prazos:[20,25,30],prazoRef:30,selic:13.75,invTipo:'lci',aporte:0,usarLongo:true,custosFin:false,sistema:'sac',primeiro:true,custosNoCaixa:true};
+  renda:12000,comp:[0,0],taxa:10.26,taxaPort:9.0,idade:39,prazos:[20,25,30],prazoRef:30,selic:13.75,invTipo:'lci',aporte:500,usarLongo:true,custosFin:false,sistema:'sac',primeiro:true,custosNoCaixa:true};
 let S=(function(){ try{const s=localStorage.getItem('v2p-imovel-estado'); if(s)return Object.assign({},S0,JSON.parse(s));}catch(e){} return Object.assign({},S0); })();
 function saveS(){ try{localStorage.setItem('v2p-imovel-estado',JSON.stringify(S));}catch(e){} }
 
@@ -256,6 +267,24 @@ function sac(pv,anos,taxa,idade0,sist){
   return {ps,sal,jur,seg,amt,sist:price?'price':'sac',p1:ps[0],pn:ps[ps.length-1],tot:ps.reduce((a,b)=>a+b,0)};
 }
 function hoje(v,anos){ return v/Math.pow(1+P.infl/100,anos); }
+/* ---------------------------------------------------------------------------
+   Projecao de aporte mensal, adaptada de projSim() da plataforma V2P.
+   Trabalha inteiramente em R$ de hoje: se o aporte acompanha a inflacao e a
+   taxa usada e a REAL, o resultado ja sai em poder de compra atual, sem
+   precisar inflar e desinflar. O nominal vem depois, multiplicando de volta.
+--------------------------------------------------------------------------- */
+function projAporte(cap0,aporteMes,anos,txRealAA){
+  const rm=Math.pow(1+txRealAA/100,1/12)-1;
+  let s=cap0; const serie=[];
+  for(let m=1;m<=Math.round(anos*12);m++){
+    s=s*(1+rm)+aporteMes;
+    if(m%12===0)serie.push({ano:m/12,hoje:s,nom:s*Math.pow(1+P.infl/100,m/12)});
+  }
+  return serie;
+}
+/* a renda mensal que um montante paga sem encolher em poder de compra:
+   so a taxa real, porque a parte nominal que repoe a inflacao tem de ficar */
+function rendaDe(montanteHoje,txRealAA){ return montanteHoje*(txRealAA/100)/12; }
 function escalaY(y0,y1){
   /* a unidade vem da grandeza dos valores, nao da amplitude da curva: uma
      faixa estreita la em cima (4,09M a 4,31M) continua sendo milhao. */
@@ -338,8 +367,9 @@ function C2x(){ return 'var(--c2)'; }
 function cidV(c){ return P.cidades[c]?P.cidades[c].var12:null; }
 function taxaEsperada(selic,cat){ return P.finA+P.finB*selic+(P.finDesc[cat]||0); }
 function mediaCat(cat){ const l=P.bancos.filter(b=>b[5]===cat); return l.length?l.reduce((a,b)=>a+b[1],0)/l.length:null; }
+function inccAA(){ return P.incc!=null?P.incc:P.infl; }
 function consorcio(credito,adm,fr,meses,lance){
-  const base=credito*(1+adm/100+fr/100); const pm=base/meses; const im=Math.pow(1+P.infl/100,1/12)-1; let tot=0,totH=0; const ps=[];
+  const base=credito*(1+adm/100+fr/100); const pm=base/meses; const im=Math.pow(1+inccAA()/100,1/12)-1; let tot=0,totH=0; const ps=[];
   for(let m=0;m<meses;m++){ const p=pm*Math.pow(1+im,Math.floor(m/12)*12); ps.push(p); tot+=p; totH+=hoje(p,m/12); }
   return {p1:ps[0],pn:ps[ps.length-1],tot,totH,custo:credito*(adm+fr)/100,lanceR:credito*lance/100}; }
 function patrim(valor,caixa,entrada,anos,taxa,idade,ref){
@@ -407,7 +437,7 @@ function render(modo){
    +'<div><label>Sistema de amortização</label><select id="sistema"><option value="sac"'+(S.sistema==='sac'?' selected':'')+'>SAC — parcela cai (financia até '+fp(P.regras.ltvSac,0)+'%)</option><option value="price"'+(S.sistema==='price'?' selected':'')+'>Price — parcela fixa (financia até '+fp(P.regras.ltvPrice,0)+'%)</option></select></div>'
    +'<div><label>Custos da escritura (ITBI, cartório)</label><select id="custosFin"><option value="0"'+(!S.custosFin?' selected':'')+'>pago à vista, do meu bolso</option><option value="1"'+(S.custosFin?' selected':'')+'>financiar junto com o imóvel</option></select></div>'
    +'<div><label>É o seu primeiro imóvel?</label><select id="primeiro"><option value="1"'+(S.primeiro?' selected':'')+'>sim — 50% de desconto no cartório</option><option value="0"'+(!S.primeiro?' selected':'')+'>não</option></select></div>'
-   +'<div><label>Investir por mês, além da parcela</label>'+campoR$('aporte',S.aporte)+'<span class="meta">deixe zerado e eu escolho pelo seu limite de renda</span></div>'
+   +'<div><label>Investir por mês, além da parcela</label>'+campoR$('aporte',S.aporte)+'<span class="meta">quanto você guarda todo mês, além da parcela · zere e a conta escolhe sozinha</span></div>'
    +'<div><label>Selic do momento (% a.a.)</label>'+campoPct('selic',S.selic,0.25)+'<span class="meta">padrão '+fp(P.selicRef,2)+'% em '+esc(P.selicData)+'</span></div>'
    +'</div><div style="margin-top:10px"><button onclick="calc()">Calcular</button> <button class="ghost" onclick="limpar()">limpar</button> <span class="meta">atualiza sozinho enquanto você digita · tudo fica salvo neste navegador</span></div></div>';
   const FORM=html; html='';
@@ -594,7 +624,7 @@ function render(modo){
      +'<div class="def"><b>Você está simulando pelo '+(S.sistema==='price'?'Price':'SAC')+'.</b> Troque no campo "sistema de amortização" da seção 3 e a página inteira recalcula — inclusive a entrada mínima, que muda de '+fp(100-P.regras.ltvSac,0)+'% para '+fp(100-P.regras.ltvPrice,0)+'%.</div>';
   })();
   /* --- 5. A RECOMENDAÇÃO --- */
-  const LIM=0.25, LIMT=0.30;
+  const LIM=(P.limConf||25)/100, LIMT=(P.limTeto||30)/100;
   const orcConf=rendaTot*LIM, orcTeto=rendaTot*LIMT;
   const entMax=Math.min(S.caixa-custosAVista,S.valor-20000);
   const grade=[]; for(let e=Math.ceil(entMin/10000)*10000;e<=entMax;e+=Math.max(10000,Math.round(S.valor*0.025/5000)*5000))grade.push(e);
@@ -614,7 +644,7 @@ function render(modo){
      premissas), fica o de MENOR parcela — folga no mês vale mais que otimização. */
   const topo=viaveis.length?Math.max(...viaveis.map(x=>x.patrimH)):0;
   if(seuSim0.p1<=orcTeto)viaveis.push(simular(entradaTot,S.prazoRef,orc,HOR));
-  const quase=viaveis.filter(x=>x.patrimH>=topo*0.98);
+  const quase=viaveis.filter(x=>x.patrimH>=topo*(1-(P.ruido||2)/100));
   let sug=quase.length?quase.reduce((a,b)=>b.p1<a.p1?b:a):null;
   const otimo=viaveis.length?viaveis.reduce((a,b)=>b.patrimH>a.patrimH?b:a):null;
   const seu=simular(entradaTot,S.prazoRef,orc,HOR);
@@ -622,7 +652,7 @@ function render(modo){
   const igual=sug&&sug.entrada===entradaTot&&sug.anos===S.prazoRef;
   const C1='var(--c1)',C2='var(--c2)';
   html+='<h2>5. Cenário recomendado — otimização sob orçamento constante</h2>'
-   +'<p>Esta seção não opina: ela <b>enumera cenários e devolve o que vence sob um critério declarado</b>. O critério está aberto logo abaixo — discordar dele é legítimo, e muda o resultado.</p>'+'<div class="def"><b>O método, em quatro linhas.</b> <b>Função objetivo:</b> maximizar o patrimônio ao fim do horizonte, medido em R$ de hoje (imóvel + carteira). <b>Restrições:</b> primeira parcela ≤ '+fp(LIMT*100,0)+'% da renda total e aporte mensal não negativo — cenário que viole qualquer uma é <b>descartado</b>, não penalizado. <b>Variáveis livres:</b> tamanho da entrada e prazo do financiamento; todo o resto fica constante. <b>Desempate:</b> entre os cenários que chegam a 2% do topo, vence o de <b>menor parcela</b> — diferença de 2% depois de '+HOR+' anos de premissas é ruído estatístico, folga mensal não é.</div>'+'<div class="def"><b>Por que orçamento constante.</b> Comparar cenários com desembolsos mensais diferentes mede quanto dinheiro entrou, não qual decisão foi melhor. Fixando o gasto mensal e o horizonte, a única coisa que varia é <b>para onde</b> o dinheiro foi — parcela ou carteira. É o que torna os números desta seção comparáveis entre si.</div>'+'<p>Orçamento mensal fixado em <b>'+fmt(orc)+'</b>, horizonte comum de <b>'+HOR+' anos</b>. '
+   +'<p>Esta seção não opina: ela <b>enumera cenários e devolve o que vence sob um critério declarado</b>. O critério está aberto logo abaixo — discordar dele é legítimo, e muda o resultado.</p>'+'<div class="def"><b>O método, em quatro linhas.</b> <b>Função objetivo:</b> maximizar o patrimônio ao fim do horizonte, medido em R$ de hoje (imóvel + carteira). <b>Restrições:</b> primeira parcela ≤ '+fp(LIMT*100,0)+'% da renda total e aporte mensal não negativo — cenário que viole qualquer uma é <b>descartado</b>, não penalizado. <b>Variáveis livres:</b> tamanho da entrada e prazo do financiamento; todo o resto fica constante. <b>Desempate:</b> entre os cenários que chegam a '+fp(P.ruido||2,0)+'% do topo, vence o de <b>menor parcela</b> — diferença de '+fp(P.ruido||2,0)+'% depois de '+HOR+' anos de premissas é ruído estatístico, folga mensal não é.</div>'+'<div class="def"><b>Por que orçamento constante.</b> Comparar cenários com desembolsos mensais diferentes mede quanto dinheiro entrou, não qual decisão foi melhor. Fixando o gasto mensal e o horizonte, a única coisa que varia é <b>para onde</b> o dinheiro foi — parcela ou carteira. É o que torna os números desta seção comparáveis entre si.</div>'+'<p>Orçamento mensal fixado em <b>'+fmt(orc)+'</b>, horizonte comum de <b>'+HOR+' anos</b>. '
    +(S.aporte>0?'Esse orçamento é o que <b>você declarou</b>: a parcela do seu plano ('+fmt(seuSim0.p1)+') mais '+fmt(S.aporte)+' que você quer investir todo mês.'
     :'Como você deixou o campo de aporte em zero, usei o maior entre 25% da sua renda e a parcela do plano que você digitou, respeitando o teto de 30%. <b>Se você já sabe quanto quer investir por mês, preencha o campo na seção 3</b> — a conta inteira passa a usar o seu número.')
    +' Todo cenário abaixo gasta exatamente isso por mês: o que não vai para a parcela, vai para investimento. Assim a comparação é justa.</p>';
@@ -690,7 +720,7 @@ function render(modo){
          return ''; })())
       +' '+(sug.anos>S.prazoRef?'O prazo mais longo não é dívida a mais: a parcela menor libera mais dinheiro para investir todo mês, e a parcela antiga encolhe com a inflação.':sug.anos<S.prazoRef?'O prazo mais curto ganha porque aqui os juros pesam mais do que o rendimento do que sobraria.':''))
    +'</div>'
-   +(otimo&&(otimo.entrada!==sug.entrada||otimo.anos!==sug.anos)?'<div class="def"><b>Por que não o máximo absoluto.</b> O cenário que termina com o maior número é entrada de '+fk(otimo.entrada)+' em '+otimo.anos+' anos ('+fk(otimo.patrimH)+', só '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% acima) — mas com parcela de '+fmt(otimo.p1)+' e apenas '+fmt(otimo.aporte1)+' de folga por mês. Diante de '+HOR+' anos de premissas, '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% é ruído; a folga mensal não é. Por isso a sugestão é a de <b>menor parcela entre as que chegam a 2% do topo</b>.</div>':'')
+   +(otimo&&(otimo.entrada!==sug.entrada||otimo.anos!==sug.anos)?'<div class="def"><b>Por que não o máximo absoluto.</b> O cenário que termina com o maior número é entrada de '+fk(otimo.entrada)+' em '+otimo.anos+' anos ('+fk(otimo.patrimH)+', só '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% acima) — mas com parcela de '+fmt(otimo.p1)+' e apenas '+fmt(otimo.aporte1)+' de folga por mês. Diante de '+HOR+' anos de premissas, '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% é ruído; a folga mensal não é. Por isso a sugestão é a de <b>menor parcela entre as que chegam a '+fp(P.ruido||2,0)+'% do topo</b>.</div>':'')
    +'<div class="note warn"><b>O que esta recomendação não sabe.</b> Ela otimiza um número só: patrimônio no fim, em dinheiro de hoje. Não sabe se você dorme mal com dívida, se vai trocar de emprego, se quer quitar antes. <b>Parcela que cabe com folga vale mais que otimização</b> — se a diferença for pequena, fique com o cenário que te deixa tranquilo.</div>';
 
   /* GRÁFICO 1 — patrimônio final por entrada */
@@ -761,28 +791,70 @@ function render(modo){
     +'<b>3) Imóvel + investido</b> — a soma de tudo o que é seu: o imóvel ('+fk(S.valor)+') mais o dinheiro investido da coluna 1. Nada de novo, é só uma soma.<br>'
     +'<span class="meta">Confira na primeira linha: dinheiro investido + '+fk(S.valor)+' do imóvel = a última coluna.</span></div>'
     +'<p class="meta" style="margin:0 0 8px">Tudo já descontada a inflação, então dá para comparar direto com o que você ganha hoje. A coluna 2 usa '+fp(taxaReal(),2)+'% ao ano — o rendimento acima da inflação.</p>'
-    +'<div class="scroll"><table><thead><tr><th class="mono">ano</th><th class="mono">sua idade</th><th class="mono">dinheiro investido</th><th class="mono">quanto isso paga por mês</th><th class="mono">% do seu salário de hoje</th><th class="mono">já cobre a parcela?</th><th class="mono">ainda paga parcela?</th><th class="mono">imóvel + investido</th></tr></thead><tbody>'
+    +'<div class="scroll"><table><thead><tr><th class="mono">ano</th><th class="mono">dinheiro investido</th><th class="mono">quanto isso paga por mês</th><th class="mono">% do seu salário</th><th class="mono">ainda paga parcela?</th><th class="mono">imóvel + investido</th></tr></thead><tbody>'
     +[5,10,15,20,25,30,35].filter(a=>a<=HOR).map(a=>{const x=sug.serie[a-1]; if(!x)return '';
       const pagando=a<sug.anos;
       const r=rm(x.cartH), pctRenda=r/rendaTot*100;
       const parcHoje=pagando?hoje(sac(S.valor-sug.entrada+(S.custosFin?custosPrev:0),sug.anos,S.taxa,S.idade).ps[Math.min((a-1)*12,sug.anos*12-1)],a-1):0;
       const cobre=pagando?r/Math.max(1,parcHoje):null;
-      return '<tr'+(a===HOR?' class="hl"':'')+'><td class="mono">'+a+'</td><td class="mono">'+(S.idade+a)+'</td><td class="mono">'+fk(x.cartH)+'</td>'
+      return '<tr'+(a===HOR?' class="hl"':'')+'><td class="mono"><b>'+a+'</b><span class="h" style="display:block;font-size:10.5px;color:var(--muted)">você com '+(S.idade+a)+'</span></td><td class="mono">'+fk(x.cartH)+'</td>'
        +'<td class="mono"><b>'+fmt(r)+'</b></td>'
-       +'<td class="mono '+(pctRenda>=100?'pos':pctRenda>=50?'wr':'')+'">'+fp(pctRenda,0)+'%'+(pctRenda>=100?' <span class="chip ok">renda substituída</span>':'')+'</td>'
-       +'<td class="mono">'+(pagando?(cobre>=10?'<span class="chip ok">sim, com folga</span>':cobre>=1?'<span class="chip ok">sim, '+fp(cobre,1)+'×</span>':fp(cobre*100,0)+' % da parcela'):'<span class="meta">—</span>')+'</td>'
-       +'<td class="mono">'+(pagando?'<span class="chip mid">sim</span>':'<span class="chip ok">quitado</span>')+'</td>'
+       +'<td class="mono '+(pctRenda>=100?'pos':pctRenda>=50?'wr':'')+'">'+fp(pctRenda,0)+'%'+(pctRenda>=100?' <span class="chip ok">paga o seu padrão de vida</span>':'')+'</td>'
+       +'<td class="mono">'+(pagando?'<span class="chip mid">sim</span>'+(cobre>=1?'<span class="h" style="display:block;font-size:10.5px;color:var(--muted)">o rendimento já cobre '+fp(cobre,1)+'×</span>':''):'<span class="chip ok">quitado</span>')+'</td>'
        +'<td class="mono">'+fk(x.cartH+S.valor)+'</td></tr>';}).join('')
     +'</tbody></table></div>'
-    +gloss([['ano / sua idade','Quantos anos de contrato se passaram e a idade que você terá.'],
+    +gloss([['ano','Quantos anos de contrato se passaram, e a idade que você terá.'],
       ['dinheiro investido','O montante que você acumulou investindo ao lado do imóvel, já convertido para o poder de compra de hoje. É um bolo, não uma renda.'],
       ['quanto isso paga por mês','O que essa carteira pagaria por mês se você vivesse do rendimento <b>sem encolher o principal em poder de compra</b> — sacando só a taxa real ('+fp(taxaReal(),2)+'% ao ano) e deixando a inflação reposta. É a linha que responde "quando eu posso parar".'],
       ['% do seu salário de hoje','O valor mensal da coluna anterior comparado com o que você ganha hoje ('+fmt(rendaTot)+'). Quando chega a 100%, <b>a carteira paga sozinha o seu padrão de vida atual</b> — é a definição prática de independência financeira.'],
-      ['já cobre a parcela?','Se o valor mensal da coluna anterior naquele ano já daria para pagar a parcela do financiamento (as duas em dinheiro de hoje). Quando passa de 1×, a dívida deixou de ser um problema: o rendimento a sustenta.'],
-      ['ainda paga parcela?','Enquanto "sim", parte do orçamento vai para o banco. Quando vira "quitado", o orçamento inteiro passa a ser investido — é por isso que a curva acelera no fim.'],
+      ['ainda paga parcela?','Enquanto \'sim\', parte do orçamento vai para o banco — e o aviso embaixo diz quantas vezes o rendimento já cobriria a parcela. Se o valor mensal da coluna anterior naquele ano já daria para pagar a parcela do financiamento (as duas em dinheiro de hoje). Quando passa de 1×, a dívida deixou de ser um problema: o rendimento a sustenta.'],
+      
       ['imóvel + investido','Dinheiro investido + o valor do imóvel. O imóvel entra pelo preço de compra porque a conta assume que ele acompanha a inflação, nem mais nem menos.']],'O que significa cada coluna')
     +'<div class="note warn"><b>Sobre o valor do imóvel.</b> A calculadora assume que ele acompanha a inflação — por isso, em dinheiro de hoje, ele vale sempre '+fk(S.valor)+'. Em reais nominais daqui a '+HOR+' anos, isso dá '+fk(S.valor*Math.pow(1+P.infl/100,HOR))+'. <b>Não projetei valorização acima da inflação</b>: seria inventar número. Se o seu bairro vem subindo acima dela (veja a seção de bairros), o resultado real tende a ser melhor do que o mostrado aqui — mas isso é aposta, não conta.</div>';
   }
+  /* ===== SECAO PROPRIA: o aporte mensal e a renda que ele paga ===== */
+  if(sug){ (function(){
+    const tr=realProj(), capIni=Math.max(0,S.caixa-sug.entrada-custosAVista);
+    const meu=Math.max(0,S.aporte>0?S.aporte:sug.aporte1);
+    /* escada de aportes em torno do seu, para ver a sensibilidade */
+    const esc=[...new Set([250,500,1000,Math.round(meu/50)*50,2000,3000,5000].filter(x=>x>0))].sort((a,b)=>a-b);
+    const linha=ap=>{ const se=projAporte(capIni,ap,HOR,tr); const f=se[se.length-1];
+      return {ap,hoje:f.hoje,nom:f.nom,renda:rendaDe(f.hoje,tr),pct:rendaDe(f.hoje,tr)/rendaTot*100}; };
+    const L=esc.map(linha);
+    html+='<h2>O aporte mensal — o que ele vira, e quanta renda ele paga</h2>'
+     +'<p>Esta seção separa três coisas que as tabelas de cima misturavam. <b>Nenhuma delas é a outra.</b></p>'
+     +'<div class="plano" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">'
+     +'<div class="card"><h3>1. O imóvel</h3><div class="linha"><span>vale, em R$ de hoje</span><b>'+fk(S.valor)+'</b></div>'
+       +'<div class="linha"><span>em '+HOR+' anos, nominal</span><b>'+fk(S.valor*Math.pow(1+P.infl/100,HOR))+'</b></div>'
+       +'<div class="linha"><span>renda que paga</span><b>nenhuma</b></div>'
+       +'<p class="meta" style="margin:8px 0 0">É patrimônio, não é renda. Você mora nele: não cai dinheiro na sua conta por tê-lo. Só viraria renda se fosse vendido ou alugado — e aí você precisaria morar em outro lugar.</p></div>'
+     +'<div class="card sug"><h3>2. O dinheiro investido</h3><div class="linha"><span>parte de</span><b>'+fk(capIni)+'</b></div>'
+       +'<div class="linha"><span>mais, por mês</span><b>'+fmt(meu)+'</b></div>'
+       +'<div class="linha"><span>em '+HOR+' anos, em R$ de hoje</span><b>'+fk(linha(meu).hoje)+'</b></div>'
+       +'<div class="linha"><span>o mesmo, nominal</span><b>'+fk(linha(meu).nom)+'</b></div>'
+       +'<p class="meta" style="margin:8px 0 0">É um <b>montante</b>. Cresce de duas fontes: o que sobrou do seu caixa depois da entrada, investido uma vez, e o aporte que você faz todo mês.</p></div>'
+     +'<div class="card"><h3>3. A renda que o 2 paga</h3><div class="linha"><span>por mês, em R$ de hoje</span><b>'+fmt(linha(meu).renda)+'</b></div>'
+       +'<div class="linha"><span>por ano</span><b>'+fk(linha(meu).renda*12)+'</b></div>'
+       +'<div class="linha"><span>do seu salário de hoje</span><b>'+fp(linha(meu).pct,0)+'%</b></div>'
+       +'<p class="meta" style="margin:8px 0 0">É um <b>valor mensal</b>, e é pequeno perto do montante ao lado — tem de ser. São '+fp(tr,2)+'% ao ano divididos por 12. O resto do rendimento fica lá dentro repondo a inflação, senão a renda mingua todo ano.</p></div></div>'
+     +'<div class="def"><b>A conta que liga o 2 ao 3, inteira.</b> Montante de '+fk(linha(meu).hoje)+' × '+fp(tr,2)+'% ao ano = '+fk(linha(meu).hoje*tr/100)+' por ano ÷ 12 = <b>'+fmt(linha(meu).renda)+' por mês</b>. Nada além disso. Se quiser sacar mais que isso, o montante encolhe em poder de compra e a renda cai nos anos seguintes.</div>'
+     +'<h3>Quanto cada aporte mensal vira, em '+HOR+' anos</h3>'
+     +'<p>Uma linha por valor de aporte. <b>Só o aporte muda</b> — o ponto de partida ('+fk(capIni)+'), o prazo e a taxa são os mesmos em todas.</p>'
+     +'<div class="scroll"><table><thead><tr><th class="mono">se você guardar por mês</th><th class="mono">vira, em R$ de hoje</th><th class="mono">o mesmo, nominal</th><th class="mono">renda por mês</th><th class="mono">% do seu salário</th><th>leitura</th></tr></thead><tbody>'
+     +L.map(x=>'<tr'+(Math.abs(x.ap-meu)<25?' class="hl"':'')+'><td class="mono"><b>'+fmt(x.ap)+'</b>'+(Math.abs(x.ap-meu)<25?' <span class="chip ok">o seu</span>':'')+'</td>'
+       +'<td class="mono"><b>'+fk(x.hoje)+'</b></td><td class="mono">'+fk(x.nom)+'</td><td class="mono"><b>'+fmt(x.renda)+'</b></td>'
+       +'<td class="mono '+(x.pct>=100?'pos':x.pct>=50?'wr':'')+'">'+fp(x.pct,0)+'%</td>'
+       +'<td><small>'+(x.pct>=100?'a renda sozinha paga o seu padrão de vida atual':x.pct>=50?'paga metade do seu padrão de vida':x.pct>=25?'um complemento relevante':'um complemento pequeno')+'</small></td></tr>').join('')
+     +'</tbody></table></div>'
+     +gloss([['se você guardar por mês','O aporte: quanto sai da sua conta para investimento todo mês, além da parcela do financiamento. Corrigido pela inflação ao longo do tempo, para manter o mesmo esforço.'],
+       ['vira, em R$ de hoje','O montante acumulado ao fim de '+HOR+' anos, no poder de compra de hoje. <b>É por esta coluna que se compara.</b>'],
+       ['o mesmo, nominal','O mesmo montante em reais daquele ano futuro. O número é maior e impressiona mais, mas compra a mesma coisa que a coluna anterior.'],
+       ['renda por mês','O que esse montante paga por mês sem encolher: montante × '+fp(tr,2)+'% ÷ 12.'],
+       ['% do seu salário','Essa renda comparada com os '+fmt(rendaTot)+' que você ganha hoje. Em 100%, a renda sozinha cobre o seu padrão de vida atual.']],'O que significa cada coluna desta tabela')
+     +'<div class="note lj"><b>O que esta tabela mostra de mais útil.</b> A distância entre as linhas é o preço de cada decisão mensal. Dobrar o aporte não dobra o resultado final, porque parte do montante vem do capital inicial — mas a diferença entre guardar '+fmt(esc[0])+' e '+fmt(esc[esc.length-1])+' por mês, ao longo de '+HOR+' anos, é de <b>'+fk(L[L.length-1].hoje-L[0].hoje)+'</b> em dinheiro de hoje.</div>'
+     +'<div class="note warn"><b>Toda esta seção depende de uma premissa só:</b> render '+fp(tr,2)+'% acima da inflação, todo ano, por '+HOR+' anos. Hoje dá para travar isso num Tesouro IPCA+ longo, mas só até o vencimento dele — depois você reinveste ao que o mercado pagar naquele dia. <b>É o maior risco da projeção</b>, e ele está medido na tabela "E se a taxa real não for '+fp(tr,2)+'%?", acima.</div>'
+     +'<div class="def"><b>De onde vem este motor.</b> A projeção de aporte é a mesma usada na plataforma V2P (<span class="mono">projSim</span>), adaptada: trabalha em R$ de hoje e devolve o nominal por multiplicação, em vez de inflar e desinflar. <b>Divergência registrada:</b> a plataforma projeta FI-Infra a IPCA+'+fp(P.divergencia.fiPlataforma,1)+'% e debênture a IPCA+'+fp(P.divergencia.debPlataforma,1)+'%; o alvo de carteira anotado é IPCA+'+fp(P.divergencia.debAlvoCarteira,1)+'%; este simulador usa IPCA+'+fp(P.inv.fiReal,1)+'% e IPCA+'+fp(P.inv.debReal,1)+'%. Os quatro números estão aqui de propósito — nenhum foi apagado em favor do outro. Os desta página são editáveis nos parâmetros.</div>';
+  })(); }
   /* --- 6. curva de entrada --- */
   const ents=[]; const lo=Math.max(Math.ceil(entMin/50000)*50000,50000), hi=Math.min(S.caixa-custosAVista,S.valor-50000);
   for(let e=lo;e<=hi;e+=50000)ents.push(e);
@@ -817,7 +889,7 @@ function render(modo){
      ['vs pior','Quanto esse cenário rende a mais do que o pior da tabela. Serve para enxergar o tamanho da diferença entre dar mais ou menos entrada.']])
    +'<div class="note '+(best.e<=S.entrada?'go':'warn')+'"><b>'+(best.e<S.entrada?'Entrada menor ganha: '+fk(best.e)+' termina com '+fk(best.pat-cvSua.pat)+' a mais que a sua.':best.e===S.entrada?'Sua entrada é a melhor da curva.':'Entrada maior ganha: sua taxa está acima do que o dinheiro rende fora.')+'</b> '
    +(virada?'A curva vira em <b>'+fp(virada,2)+'% de taxa nominal de financiamento</b>: abaixo, financiar mais e investir a sobra ganha; acima, entrada maior ganha. Sua taxa: '+fp(S.taxa,2)+'%.':'Na faixa testada (6% a 15%), entrada menor sempre ganha.')+'</div>'
-   +'<div class="def"><b>"Topo" aqui não é o cenário recomendado.</b> Esta coluna marca o maior patrimônio puro. O cenário recomendado escolhe diferente de propósito: entre todos os cenários que chegam a 2% do topo, ela fica com o de <b>menor parcela</b>, porque 2% depois de '+HOR+' anos é ruído e folga no orçamento não é. Compare as duas colunas "% renda" e você vê o preço do topo.</div>'
+   +'<div class="def"><b>"Topo" aqui não é o cenário recomendado.</b> Esta coluna marca o maior patrimônio puro. O cenário recomendado escolhe diferente de propósito: entre todos os cenários que chegam a '+fp(P.ruido||2,0)+'% do topo, ela fica com o de <b>menor parcela</b>, porque 2% depois de '+HOR+' anos é ruído e folga no orçamento não é. Compare as duas colunas "% renda" e você vê o preço do topo.</div>'
    +'<div class="def"><b>Por que a curva existe</b> — quando a taxa do financiamento é menor do que o dinheiro rende investido, cada real financiado é lucro; quando é maior, cada real financiado é custo. A decisão de entrada é a comparação entre duas taxas, e nada mais. Mas a linha "% renda" manda: entrada menor só vale se a parcela couber.</div>';
   } /* fim da curva de entrada */
   /* --- 6. portabilidade --- */
@@ -933,7 +1005,13 @@ function render(modo){
    +'<div><label>Outro — taxa líquida</label><input id="p_outro" type="number" step="0.1" value="'+P.inv.outro+'"></div>'
    +'<div><label>Régua Selic: intercepto</label><input id="p_fa" type="number" step="0.1" value="'+P.finA+'"></div>'
    +'<div><label>Régua Selic: inclinação</label><input id="p_fb" type="number" step="0.01" value="'+P.finB+'"></div>'
-   +'<div><label>Prazo de referência (anos)</label><select id="p_prazo">'+PRZ_OPC().map(a=>'<option'+(a===S.prazoRef?' selected':'')+'>'+a+'</option>').join('')+'</select></div></div>'
+   +'<div><label>Prazo de referência (anos)</label><select id="p_prazo">'+PRZ_OPC().map(a=>'<option'+(a===S.prazoRef?' selected':'')+'>'+a+'</option>').join('')+'</select></div>'
+   +'<div><label>Parcela confortável (% da renda)</label><input id="p_lc" type="number" step="1" value="'+P.limConf+'"></div>'
+   +'<div><label>Parcela no teto (% da renda)</label><input id="p_lt" type="number" step="1" value="'+P.limTeto+'"></div>'
+   +'<div><label>Ruído — diferença que ignoro (%)</label><input id="p_ru" type="number" step="0.5" value="'+P.ruido+'"></div>'
+   +'<div><label>INCC (% a.a.) — corrige o consórcio</label><input id="p_incc" type="number" step="0.1" value="'+(P.incc!=null?P.incc:'')+'" placeholder="não encontrado"></div>'
+   +'<div style="grid-column:span 2"><label>Fonte do INCC</label><input id="p_inccF" value="'+esc(P.inccFonte||'')+'"></div></div>'
+   +'<div class="note warn" style="margin:10px 0 0"><b>Estes quatro primeiros não são fatos, são julgamentos.</b> 25% e 30% são régua de prudência, não exigência do banco. O "ruído" é quanto de diferença no resultado final eu trato como empate — com '+fp(P.ruido,0)+'%, dois cenários a menos disso um do outro são considerados iguais, e vence o de menor parcela. Mexa neles e a recomendação muda.</div>'
    +'<h3>Adicionar banco / atualizar taxa</h3><div class="grid"><div><label>Nome</label><input id="b_n" placeholder="Nubank"></div><div><label>Taxa %</label><input id="b_t" type="number" step="0.01"></div><div><label>Condição</label><input id="b_c" placeholder="SBPE"></div><div><label>Data (AAAA-MM)</label><input id="b_d" placeholder="2026-10"></div><div><label>Fonte</label><input id="b_f" placeholder="site"></div><div><label>Tipo</label><select id="b_k"><option value="sbpe">SBPE</option><option value="caixa">Caixa</option><option value="cotista">pró-cotista</option><option value="coop">cooperativa</option><option value="digital">digital</option><option value="consig">consignado</option></select></div></div>'
    +'<div style="margin-top:8px"><button class="sm" onclick="addBanco()">adicionar</button> <button class="ghost sm" onclick="resetP()">restaurar padrão</button> <span class="meta">padrão atualizado em '+esc(P.atualizado)+'</span></div>'
    +'<h3>Regras do crédito — limites que o banco aplica</h3>'
@@ -1163,6 +1241,9 @@ function calc(aoVivo){
   P.regras.ltvSac=gv('r_sac',P.regras.ltvSac); P.regras.ltvPrice=gv('r_price',P.regras.ltvPrice); P.regras.idadeMax=gv('r_idade',P.regras.idadeMax);
   P.regras.tetoSfh=gv('r_sfh',P.regras.tetoSfh); P.regras.itbi=gv('r_itbi',P.regras.itbi); P.regras.cartorio=gv('r_cart',P.regras.cartorio); P.regras.avaliacao=gv('r_aval',P.regras.avaliacao);
   P.longoReal=gv('p_longo',P.longoReal); { const e=document.getElementById('p_longoF'); if(e&&e.value)P.longoFonte=e.value; }
+  P.limConf=gv('p_lc',P.limConf); P.limTeto=gv('p_lt',P.limTeto); P.ruido=gv('p_ru',P.ruido);
+  { const e=document.getElementById('p_incc'); if(e)P.incc=e.value===''?null:+e.value;
+    const f=document.getElementById('p_inccF'); if(f&&f.value)P.inccFonte=f.value; }
   P.tr=gv('p_tr',P.tr); P.inv.cdbPct=gv('p_cdb',P.inv.cdbPct); P.inv.lciPct=gv('p_lci',P.inv.lciPct); P.inv.fiReal=gv('p_fi',P.inv.fiReal); P.inv.debReal=gv('p_deb',P.inv.debReal); P.inv.outro=gv('p_outro',P.inv.outro); P.finA=gv('p_fa',P.finA); P.finB=gv('p_fb',P.finB);
   if(S.invTipo!=='outro'){ const t=invTipos(S.selic).find(t=>t.k===S.invTipo); if(t)P.invest=+t.liq.toFixed(2); } else P.invest=P.inv.outro;
   saveS(); saveP(); render(aoVivo?'parcial':'total');
