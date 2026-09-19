@@ -721,6 +721,32 @@ function render(modo){
    +'<div class="linha"><span>1ª parcela</span><b>'+fmt(sug.p1)+'</b></div>'
    +'<div class="linha"><span>sobra para investir por mês</span><b class="'+(sug.aporte1>=seu.aporte1?'pos':'wr')+'">'+fmt(sug.aporte1)+'</b></div>'
    +'<div class="linha"><span>imóvel + investido em '+HOR+' anos</span><b class="'+(sug.patrimH>=seu.patrimH?'pos':'wr')+'">'+fk(sug.patrimH)+'</b></div></div></div>'
+   +(function(){ const dP=sug.patrimH-seu.patrimH, dParc=seu.p1-sug.p1;
+      const pctP=Math.abs(dP)/Math.max(1,seu.patrimH)*100, empate=pctP<(P.ruido||2);
+      if(igual)return '';
+      /* Este bloco fica COLADO nos dois cartoes de proposito. A sugestao
+         quase sempre aparece com patrimonio final MENOR, e quem le para
+         de ler ali. A troca tem de ser dita no mesmo lugar do numero. */
+      return '<div class="note '+(dParc>0?'go':'lj')+'" style="margin:-4px 0 14px">'
+       +'<b>Espera — a sugestão termina com menos dinheiro. Por que ela é a sugestão?</b><br>'
+       +'Porque as duas colunas não medem a mesma coisa. Olhe as duas diferenças lado a lado:<br>'
+       +'<div class="strip" style="margin:10px 0 2px">'
+       +'<div class="tile"><small>diferença de patrimônio em '+HOR+' anos</small>'
+         +'<b class="'+(dP>=0?'pos':'wr')+'">'+(dP>=0?'+':'−')+fk(Math.abs(dP))+'</b>'
+         +'<span class="h">'+fp(pctP,1)+'% do total'+(empate?' — empate técnico':'')+'</span></div>'
+       +'<div class="tile"><small>diferença na parcela, todo mês</small>'
+         +'<b class="'+(dParc>0?'pos':'wr')+'">'+(dParc>0?'−':'+')+fmt(Math.abs(dParc))+'</b>'
+         +'<span class="h">por '+sug.anos+' anos, '+(dParc>0?'a menos':'a mais')+' de obrigação</span></div>'
+       +'<div class="tile"><small>o que isso soma em '+sug.anos+' anos</small>'
+         +'<b>'+fk(Math.abs(dParc)*12*sug.anos)+'</b>'
+         +'<span class="h">de parcela que deixa de ser compulsória</span></div></div>'
+       +(dParc>0
+         ? '<p style="margin:10px 0 0">Você abre mão de <b>'+(dP<0?fk(-dP):'nada')+'</b>'
+           +(dP<0?' ('+fp(pctP,1)+'%, '+(empate?'dentro do ruído de '+HOR+' anos de premissas':'uma diferença real')+')':'')
+           +' para tirar <b>'+fmt(dParc)+' por mês</b> da sua obrigação com o banco. <b>Esse dinheiro não desaparece</b> — ele sai de "parcela" e entra em "sobra livre", que você continua investindo (é por isso que o patrimônio quase não muda). A diferença é <b>quem manda nele</b>: parcela o banco exige todo mês; sobra você redireciona ou suspende se a vida virar.</p>'
+           +'<p style="margin:8px 0 0"><b>Em uma frase:</b> patrimônio praticamente igual, com '+fp(Math.abs(seu.p1/rendaTot*100-sug.p1/rendaTot*100),1)+' ponto'+(Math.abs(seu.p1/rendaTot*100-sug.p1/rendaTot*100)>=2?'s':'')+' percentuais a menos da sua renda presos em contrato. <b>Se você prefere o número maior no fim, fique com o seu plano</b> — a diferença é pequena e a escolha é legítima.</p>'
+         : '<p style="margin:10px 0 0">Aqui a sugestão não reduz parcela — ela vence pelo patrimônio mesmo. A tabela completa da comparação está logo abaixo.</p>')
+       +'</div>'; })()
    +(function(){ const rm=x=>rendaMes(x.cartH);
      const bloco=(t,x,cor)=>'<div class="card"><h3><i style="background:'+cor+'"></i>'+t+' — o que você tem no fim</h3><div class="strip">'
        +'<div class="tile"><small>imóvel, em R$ de hoje</small><b>'+fk(S.valor)+'</b><span class="h">R$ '+fk(S.valor*Math.pow(1+P.infl/100,HOR)).replace('R$ ','')+' nominais em '+HOR+' anos</span></div>'
@@ -772,7 +798,7 @@ function render(modo){
    +'</div>'
    +(otimo&&(otimo.entrada!==sug.entrada||otimo.anos!==sug.anos)?'<div class="def"><b>Por que não o máximo absoluto.</b> O cenário que termina com o maior número é entrada de '+fk(otimo.entrada)+' em '+otimo.anos+' anos ('+fk(otimo.patrimH)+', só '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% acima) — mas com parcela de '+fmt(otimo.p1)+' e apenas '+fmt(otimo.aporte1)+' de folga por mês. Diante de '+HOR+' anos de premissas, '+fp((otimo.patrimH/sug.patrimH-1)*100,1)+'% é ruído; a folga mensal não é. Por isso a sugestão é a de <b>menor parcela entre as que chegam a '+fp(P.ruido||2,0)+'% do topo</b>.</div>':'')
    +(function(){ const dP=sug.patrimH-seu.patrimH, dParc=seu.p1-sug.p1, dFolga=sug.aporte1-seu.aporte1;
-      return '<div class="card" style="border-color:var(--c2);border-width:1.5px"><h3>O que a sugestão dá, e o que ela cobra</h3>'
+      return '<div class="card" style="border-color:var(--c2);border-width:1.5px"><h3>A comparação completa, linha por linha</h3>'
       +'<div class="scroll" style="margin:0"><table><thead><tr><th>o que muda</th><th class="mono">seu plano</th><th class="mono">sugestão</th><th>quem ganha</th></tr></thead><tbody>'
       +'<tr><td><b>Parcela obrigatória por mês</b><br><small>o que o contrato exige, chova ou faça sol</small></td><td class="mono">'+fmt(seu.p1)+'</td><td class="mono"><b>'+fmt(sug.p1)+'</b></td>'
         +'<td>'+(dParc>0?'<span class="chip ok">sugestão, '+fmt(dParc)+' a menos</span>':dParc<0?'<span class="chip no">seu plano</span>':'<span class="chip">empate</span>')+'</td></tr>'
