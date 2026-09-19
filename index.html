@@ -752,8 +752,39 @@ function render(modo){
        +'<div class="tile"><small>imóvel, em R$ de hoje</small><b>'+fk(S.valor)+'</b><span class="h">R$ '+fk(S.valor*Math.pow(1+P.infl/100,HOR)).replace('R$ ','')+' nominais em '+HOR+' anos</span></div>'
        +'<div class="tile"><small>dinheiro investido</small><b>'+fk(x.cartH)+'</b><span class="h">nominal '+fk(x.cart)+'</span></div>'
        +'<div class="tile"><small>imóvel + investido</small><b>'+fk(x.patrimH)+'</b><span class="h">a soma dos dois quadros ao lado</span></div>'
-       +'<div class="tile"><small>quanto isso paga por mês</small><b>'+fmt(rm(x))+'</b><span class="h">sacando só o rendimento, sem gastar o montante</span></div></div></div>';
+       +'<div class="tile"><small>paga por mês, em R$ de hoje</small><b>'+fmt(rm(x))+'</b><span class="h">nominal em '+HOR+' anos: '+fmt(rm(x)*Math.pow(1+P.infl/100,HOR))+' · sacando só o rendimento</span></div></div></div>';
      return '<div class="plano">'+bloco('Seu plano',seu,C1)+bloco('Sugestão',sug,C2)+'</div>'
+      +(function(){ const tr=realProj(), passo=5;
+         const anos=[]; for(let y=passo;y<=HOR;y+=passo)anos.push(y);
+         if(anos[anos.length-1]!==HOR)anos.push(HOR);
+         const ln=function(pl,y){ const p=pl.serie[y-1]; if(!p)return null;
+           const inf=Math.pow(1+P.infl/100,y);
+           return {y, real:p.cartH, nom:p.cartH*inf, rReal:rendaDe(p.cartH,tr), rNom:rendaDe(p.cartH,tr)*inf}; };
+         const L=anos.map(function(y){return ln(sug,y);}).filter(Boolean);
+         if(!L.length)return '';
+         return '<h3 style="margin-top:14px">O mapa: de 5 em 5 anos, sempre reinvestindo</h3>'
+          +'<p>Quanto o dinheiro investido vira e quanta renda mensal ele passa a pagar, a cada bloco de cinco anos. <b>Nada é sacado no caminho</b> — todo rendimento volta para dentro. A renda da última coluna é o que <b>passaria</b> a ser possível sacar naquele ano, se você decidisse parar de reinvestir ali.</p>'
+          +'<div class="scroll"><table><thead><tr>'
+          +'<th class="mono">anos investindo</th><th class="mono">sua idade</th>'
+          +'<th class="mono">montante<br><span style="font-weight:400;text-transform:none">em R$ de hoje</span></th>'
+          +'<th class="mono">montante<br><span style="font-weight:400;text-transform:none">nominal</span></th>'
+          +'<th class="mono">renda/mês<br><span style="font-weight:400;text-transform:none">em R$ de hoje</span></th>'
+          +'<th class="mono">renda/mês<br><span style="font-weight:400;text-transform:none">nominal</span></th>'
+          +'<th class="mono">% do seu salário</th></tr></thead><tbody>'
+          +L.map(function(x){ const pc=x.rReal/rendaTot*100;
+            return '<tr'+(x.y===HOR?' class="hl"':'')+'><td class="mono"><b>'+x.y+' anos</b></td><td class="mono">'+(S.idade+x.y)+'</td>'
+             +'<td class="mono"><b>'+fk(x.real)+'</b></td><td class="mono">'+fk(x.nom)+'</td>'
+             +'<td class="mono"><b>'+fmt(x.rReal)+'</b></td><td class="mono">'+fmt(x.rNom)+'</td>'
+             +'<td class="mono '+(pc>=100?'pos':pc>=50?'wr':'')+'">'+fp(pc,0)+'%'+(pc>=100?' <span class="chip ok">paga seu padrão de vida</span>':'')+'</td></tr>';}).join('')
+          +'</tbody></table></div>'
+          +gloss([['anos investindo','Quanto tempo se passou desde hoje, reinvestindo tudo sem sacar nada.'],
+            ['montante em R$ de hoje','O bolo acumulado, traduzido para o poder de compra de <b>hoje</b>. <b>É por esta coluna que se compara</b> com o que você ganha e gasta hoje.'],
+            ['montante nominal','O mesmo bolo em reais daquele ano futuro. O número é muito maior e não quer dizer nada sozinho: em '+HOR+' anos a inflação de '+fp(P.infl,2)+'% ao ano multiplica os preços por '+fp(Math.pow(1+P.infl/100,HOR),1)+'.'],
+            ['renda/mês em R$ de hoje','O que aquele montante pagaria por mês <b>sem encolher</b>: montante × '+fp(tr,2)+'% ao ano ÷ 12. É a resposta para "quando eu posso parar".'],
+            ['renda/mês nominal','O mesmo valor mensal em reais daquele ano. Compare sempre pela coluna anterior.'],
+            ['% do seu salário','A renda em R$ de hoje comparada com os '+fmt(rendaTot)+' que você ganha hoje.']],'O que significa cada coluna do mapa')
+          +'<div class="note lj"><b>Por que a renda demora e depois dispara.</b> Reinvestir significa que o rendimento de cada ano passa a render no ano seguinte. Nos primeiros blocos o montante é pequeno e o efeito quase não aparece; nos últimos, o mesmo percentual incide sobre um bolo muito maior. Entre o ano '+L[0].y+' e o ano '+HOR+' a renda mensal sai de '+fmt(L[0].rReal)+' para '+fmt(L[L.length-1].rReal)+' — <b>'+fp(L[L.length-1].rReal/Math.max(1,L[0].rReal),1)+' vezes</b>, em dinheiro de hoje, com o mesmo esforço mensal.</div>'
+          +'<div class="note warn"><b>O que este mapa assume.</b> Que você reinveste <b>tudo</b>, todo mês, por '+HOR+' anos, a '+fp(tr,2)+'% acima da inflação, e não saca nada no caminho. Sacar antes não é erro — só muda a conta, e a linha do ano em que você parar passa a ser o seu ponto final. Este mapa é do <b>cenário recomendado</b>; o seu plano segue a mesma matemática, com os números dos cartões acima.</div>'; })()
       +'<div class="def"><b>Como leio o "quanto isso paga por mês".</b> É o que dá para sacar todo mês <b>sem gastar o montante</b>, só o rendimento. Não é o rendimento nominal: parte dele só repõe a inflação de '+fp(P.infl,1)+'% e precisa ficar na carteira, senão a renda mingua ano após ano. O que sobra é a <b>taxa real</b>, hoje em <b>'+fp(realProj(),2)+'% ao ano</b> ('+fp(realProj()/12,3)+'% ao mês) — '
   +(S.usarLongo?'que é a taxa real de longo prazo que você definiu em “Onde a sobra rende”, a mesma que um Tesouro IPCA+ longo paga hoje.':'que vem do investimento escolhido em “Onde a sobra rende”: (1 + '+fp(P.invest,2)+'%) ÷ (1 + '+fp(P.infl,1)+'%) − 1.')
   +' Na prática é juro, dividendo de FI-Infra ou cupom de debênture. O imóvel aparece nos dois quadros porque é o mesmo nos dois planos; <b>quem muda é o dinheiro investido ao lado</b>.</div>'; })()
