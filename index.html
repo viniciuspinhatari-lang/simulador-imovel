@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Simulador Imóvel</title>
-<meta name="description" content="Entrada, prazo, taxa, renda e portabilidade — simule seu financiamento com valor nominal e em dinheiro de hoje">
+<title>Simulador Imóvel com Investimentos</title>
+<meta name="description" content="Financiamento imobiliário e investimentos na mesma conta: entrada, prazo, taxa, perfil de investidor e projeção de renda — em valor nominal e em dinheiro de hoje">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root{--ground:#F7F4F1;--surface:#FFFFFF;--surface2:#EFE9E3;--ink:#15211D;--muted:#5B6B64;--line:#E2D9D2;--line2:#CBBEB4;
@@ -151,7 +151,7 @@ footer a{color:var(--accent)}
 <div class="wrap">
 <header>
   <p class="brand">V2P <span>Investing</span></p>
-  <p class="sub">Simulador de financiamento imobiliário · valor nominal e em dinheiro de hoje</p>
+  <p class="sub">Imóvel com investimentos · o financiamento e o que fazer com o que sobra</p>
   <button class="ghost sm" onclick="toggleTema()">tema</button>
 </header>
 <h1>Quanto dar de entrada, por quanto tempo, a que taxa — e o que a parcela vale de verdade daqui a 20 anos</h1>
@@ -165,7 +165,7 @@ footer a{color:var(--accent)}
 <script>
 /* ============ PARÂMETROS — tudo editável, salvo no navegador ============ */
 const DEF={
-  v:3, atualizado:'2026-09-19',
+  v:4, atualizado:'2026-09-19',
   infl:4.22, invest:11.5, custoPort:5000,
   selicRef:13.75, selicData:'2026-09-19 (Banco Central, série 432 — meta vigente)',
   finA:6.6, finB:0.34, finDesc:{sbpe:0,caixa:-0.8,cotista:-2.2,coop:-1.0,consig:-2.0,digital:-1.5},
@@ -173,7 +173,13 @@ const DEF={
   longoReal:7.19, longoFonte:'Tesouro IPCA+ 2050, taxa de compra em 2026-09-18 (Tesouro Transparente)',
   regras:{ ltvSac:80, ltvPrice:70, ltvMcmv:90, idadeMax:80.5, prazoMaxMeses:420,
            tetoSfh:2250000, tetoMcmv:600000, itbi:3.0, cartorio:1.5, avaliacao:3100, desc1oImovel:50 },
-  inv:{ cdbPct:100, lciPct:90, tesSpread:0.10, tesCust:0.20, ir:15, fiReal:7.5, debReal:8.77, outro:11.5 },
+  inv:{ cdbPct:100, lciPct:90, tesSpread:0.10, tesCust:0.20, ir:15, fiReal:7.5, debReal:8.77, outro:11.5,
+        /* Nao ha fonte publica para "retorno esperado de renda variavel":
+           qualquer numero seria chute. O padrao aqui repete a taxa real do
+           titulo publico longo — premissa DELIBERADAMENTE conservadora
+           (assume que a bolsa nao entrega nada acima do Tesouro), declarada
+           como tal e editavel. Nao e previsao de mercado. */
+        rvReal:null },
   /* julgamentos que estavam cravados no codigo. Nao sao fatos: sao regras
      de bolso, e por isso ficam editaveis (regra 7 do projeto). */
   limConf:25, limTeto:30, ruido:2,
@@ -393,8 +399,38 @@ function invTipos(selic){ const cdi=Math.max(0,selic-0.10), I=P.inv, ir=I.ir/100
    {k:'lci',n:'LCI / LCA '+I.lciPct+'% do CDI',bruta:cdi*I.lciPct/100,liq:cdi*I.lciPct/100,ir:'isento',regra:'isenta de IR — 90% do CDI isento vale mais que 100% tributado',risco:'FGC; carência de 9–12 meses'},
    {k:'fi',n:'FI-Infra (IPCA + '+fp(I.fiReal,1)+'%)',bruta:real(I.fiReal),liq:real(I.fiReal),ir:'isento',regra:'(1 + inflação) × (1 + taxa real) − 1 · a taxa real é a do momento, edite',risco:'cota oscila em bolsa; não é garantido; não é FGC'},
    {k:'deb',n:'Debênture incentivada (IPCA + '+fp(I.debReal,1)+'%)',bruta:real(I.debReal),liq:real(I.debReal),ir:'isento',regra:'mesma conta do FI-Infra, um emissor só',risco:'crédito de uma empresa; pode dar calote'},
+   {k:'mix',n:'Mesclado — pela sua alocação',bruta:null,liq:null,ir:'depende da fatia',regra:'média ponderada das classes da seção de perfil',risco:'o risco de cada classe, na proporção da fatia'},
    {k:'outro',n:'Outro (você define)',bruta:I.outro,liq:I.outro,ir:'—',regra:'taxa líquida que você quiser testar',risco:'—'}
-  ].map(t=>{ t.naoSegue=t.k==='fi'||t.k==='deb'||t.k==='outro'; return t; }); }
+  ].map(t=>{ t.naoSegue=t.k==='fi'||t.k==='deb'||t.k==='outro'||t.k==='mix';
+     t.liquidez={poup:'imediata, qualquer dia',tes:'D+1 útil',cdb:'no vencimento; antes disso só com deságio',
+       lci:'carência de 9 a 12 meses — <b>não serve de reserva</b>',fi:'D+2 pela bolsa, ao preço da cota no dia',
+       deb:'no vencimento; antes, mercado secundário com deságio',mix:'a da classe mais lenta que você tiver',
+       outro:'você define'}[t.k]||'—';
+     if(t.k==='mix'){ const r=mixReal(); t.liq=((1+r/100)*(1+P.infl/100)-1)*100; t.bruta=t.liq; }
+     return t; }); }
+/* A taxa da opcao mesclada: media ponderada das classes da alocacao do
+   perfil, cada uma com a taxa REAL que a propria pagina ja usa. */
+function mixPesos(){
+  const A=P.alocs||{}, k=(S.perfPrazo&&A[S.perfPrazo])?S.perfPrazo:'longo';
+  let al=A[k]||{cx:10,tes:15,deb:35,fi:25,rv:15};
+  if(S.perfQueda==='vendo'){ const d={longo:'medio',medio:'curto'}[k]; if(d&&A[d])al=A[d]; }
+  return al;
+}
+function rvRealUsada(){ return P.inv.rvReal!=null?P.inv.rvReal:P.longoReal; }
+function mixTaxas(){
+  const selic=S.selic, cdi=Math.max(0,selic-0.10);
+  const tesNom=(selic+P.inv.tesSpread-P.inv.tesCust)*(1-P.inv.ir/100);
+  const real=function(nom){ return ((1+nom/100)/(1+P.infl/100)-1)*100; };
+  /* caixa tem de render como TESOURO SELIC (saque em D+1), nao como LCI:
+     LCI paga mais justamente por ter carencia de 9 a 12 meses, e caixa
+     com carencia nao e caixa. */
+  return {cx:real(tesNom), tes:P.longoReal, deb:P.inv.debReal, fi:P.inv.fiReal, rv:rvRealUsada()};
+}
+function mixReal(){
+  const al=mixPesos(), tx=mixTaxas(); let soma=0, peso=0;
+  ['cx','tes','deb','fi','rv'].forEach(function(c){ const p=al[c]||0; soma+=p*tx[c]; peso+=p; });
+  return peso?soma/peso:P.longoReal;
+}
 function segueSelic(k){ return ['poup','tes','cdb','lci'].includes(k||S.invTipo); }
 /* taxa REAL usada nas projeções longas: ou a de longo prazo (contratável hoje
    num IPCA+ longo), ou a de hoje projetada para sempre — escolha do usuário. */
@@ -501,9 +537,36 @@ function render(modo){
    +'<div><label>Sistema de amortização</label><select id="sistema"><option value="sac"'+(S.sistema==='sac'?' selected':'')+'>SAC — parcela cai (financia até '+fp(P.regras.ltvSac,0)+'%)</option><option value="price"'+(S.sistema==='price'?' selected':'')+'>Price — parcela fixa (financia até '+fp(P.regras.ltvPrice,0)+'%)</option></select></div>'
    +'<div><label>Custos da escritura (ITBI, cartório)</label><select id="custosFin"><option value="0"'+(!S.custosFin?' selected':'')+'>pago à vista, do meu bolso</option><option value="1"'+(S.custosFin?' selected':'')+'>financiar junto com o imóvel</option></select></div>'
    +'<div><label>É o seu primeiro imóvel?</label><select id="primeiro"><option value="1"'+(S.primeiro?' selected':'')+'>sim — 50% de desconto no cartório</option><option value="0"'+(!S.primeiro?' selected':'')+'>não</option></select></div>'
-   +'<div><label>Investir por mês, além da parcela</label>'+campoR$('aporte',S.aporte)+'<span class="meta">quanto você guarda todo mês, além da parcela · zere e a conta escolhe sozinha</span></div>'
    +'<div><label>Selic do momento (% a.a.)</label>'+campoPct('selic',S.selic,0.25)+'<span class="meta">padrão '+fp(P.selicRef,2)+'% em '+esc(P.selicData)+'</span></div>'
    +'</div><div style="margin-top:10px"><button onclick="calc()">Calcular</button> <button class="ghost" onclick="limpar()">limpar</button> <span class="meta">atualiza sozinho enquanto você digita · tudo fica salvo neste navegador</span></div></div>';
+  /* ===== O CAMPO EM DESTAQUE: quanto investir por mes, e em que =====
+     Estava perdido entre onze campos da secao 3. E a variavel que a pessoa
+     mais mexe e a que mais muda o resultado, entao ganha cartao proprio. */
+  (function(){
+    const TIP=invTipos(S.selic), sel=TIP.find(function(x){return x.k===S.invTipo;})||TIP[0];
+    const trM=(S.invTipo==='mix')?mixReal():realProj();
+    html+='<div class="card" style="border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--surface));margin:18px 0 6px">'
+     +'<h3 style="margin-top:0;font-size:18px">Quanto você vai investir por mês — e em quê</h3>'
+     +'<p style="margin:0 0 12px">Estes dois campos mudam a página inteira: parcelas, cenário recomendado, projeções e o mapa de planejamento. <b>Mexa neles à vontade</b> — recalcula sozinho e fica salvo neste navegador.</p>'
+     +'<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">'
+     +'<div><label>Investir por mês, além da parcela</label>'+campoR$('aporte',S.aporte)
+       +'<span class="meta">zere e a conta escolhe sozinha pelo seu limite de renda</span></div>'
+     +'<div><label>Em que investir</label><select id="inv_tipo">'
+       +TIP.map(function(x){ return '<option value="'+x.k+'"'+(x.k===S.invTipo?' selected':'')+'>'+esc(x.n)+'</option>'; }).join('')
+       +'</select><span class="meta">'+(sel.liq!=null?fp(sel.liq,2)+'% ao ano líquido':'—')+'</span></div>'
+     +'<div><label>Quando dá para retirar</label><input value="" id="inv_liq_v" disabled style="opacity:0"><div class="def" style="margin:0;padding:8px 10px;font-size:13px">'+sel.liquidez+'</div></div>'
+     +'</div>'
+     +'<div class="strip" style="margin:12px 0 0">'
+     +'<div class="tile"><small>rendimento real usado nas projeções</small><b>'+fp(trM,2)+'%</b><span class="h">acima da inflação, ao ano</span></div>'
+     +'<div class="tile"><small>isento de imposto de renda?</small><b>'+esc(sel.ir)+'</b><span class="h">'+(sel.ir==='isento'?'o que rende é o que chega':'o líquido já está descontado')+'</span></div>'
+     +'<div class="tile"><small>o risco desta escolha</small><b style="font-size:13px;line-height:1.4">'+esc(sel.risco)+'</b></div></div>'
+     +(S.invTipo==='mix'?(function(){ const al=mixPesos(), tx=mixTaxas(), CL=P.classes;
+        return '<div class="def" style="margin:12px 0 0"><b>Como os '+fp(trM,2)+'% da opção mesclada são calculados.</b> Média ponderada das classes da sua alocação (seção do perfil de investidor): '
+         +['cx','tes','deb','fi','rv'].filter(function(c){return (al[c]||0)>0;}).map(function(c){ return esc(CL[c])+' '+(al[c])+'% × '+fp(tx[c],2)+'%'; }).join(' · ')
+         +' = <b>'+fp(trM,2)+'% reais ao ano</b>. Mudou o perfil, muda esta taxa. '
+         +'<b>A fatia de renda variável usa '+fp(rvRealUsada(),2)+'%</b>'+(P.inv.rvReal==null?' — que é a mesma taxa do título público longo, premissa deliberadamente conservadora, porque não existe fonte pública para "retorno esperado da bolsa". Edite nos parâmetros se quiser testar outra.':' — valor que você definiu nos parâmetros.')+'</div>'; })():'')
+     +'</div>';
+  })();
   const FORM=html; html='';
   /* --- 3b. CHECAGEM DAS REGRAS --- */
   const RG=P.regras, entMin=entradaMinima(S.valor), prazoMax=prazoMaximo(S.idade), CST=custosAquisicao(S.valor,S.primeiro);
@@ -1299,6 +1362,7 @@ function render(modo){
    +'<div><label>FI-Infra — taxa real (IPCA +)</label><input id="p_fi" type="number" step="0.1" value="'+P.inv.fiReal+'"></div>'
    +'<div><label>Debênture — taxa real (IPCA +)</label><input id="p_deb" type="number" step="0.1" value="'+P.inv.debReal+'"></div>'
    +'<div><label>Outro — taxa líquida</label><input id="p_outro" type="number" step="0.1" value="'+P.inv.outro+'"></div>'
+   +'<div><label>Renda variável — taxa real esperada</label><input id="p_rv" type="number" step="0.1" value="'+(P.inv.rvReal!=null?P.inv.rvReal:'')+'" placeholder="não encontrado — usando '+fp(P.longoReal,2)+'%"></div>'
    +'<div><label>Régua Selic: intercepto</label><input id="p_fa" type="number" step="0.1" value="'+P.finA+'"></div>'
    +'<div><label>Régua Selic: inclinação</label><input id="p_fb" type="number" step="0.01" value="'+P.finB+'"></div>'
    +'<div><label>Prazo de referência (anos)</label><select id="p_prazo">'+PRZ_OPC().map(a=>'<option'+(a===S.prazoRef?' selected':'')+'>'+a+'</option>').join('')+'</select></div>'
@@ -1474,6 +1538,7 @@ function rodape(){
 let LIVE=null;
 function bind(soRes){
   const g=id=>document.getElementById(id);
+  { const el=g('inv_tipo'); if(el)el.onchange=function(){ lerCampos(); usarInv(el.value); }; }
   ['pf_prazo','pf_res','pf_q'].forEach(function(id){ const el=g(id); if(el)el.onchange=function(){
     lerCampos();
     if(id==='pf_prazo')S.perfPrazo=el.value; else if(id==='pf_res')S.perfReserva=el.value; else S.perfQueda=el.value;
@@ -1545,13 +1610,17 @@ function calc(aoVivo){
   P.limConf=gv('p_lc',P.limConf); P.limTeto=gv('p_lt',P.limTeto); P.ruido=gv('p_ru',P.ruido);
   { const e=document.getElementById('p_incc'); if(e)P.incc=e.value===''?null:+e.value;
     const f=document.getElementById('p_inccF'); if(f&&f.value)P.inccFonte=f.value; }
-  P.tr=gv('p_tr',P.tr); P.inv.cdbPct=gv('p_cdb',P.inv.cdbPct); P.inv.lciPct=gv('p_lci',P.inv.lciPct); P.inv.fiReal=gv('p_fi',P.inv.fiReal); P.inv.debReal=gv('p_deb',P.inv.debReal); P.inv.outro=gv('p_outro',P.inv.outro); P.finA=gv('p_fa',P.finA); P.finB=gv('p_fb',P.finB);
+  P.tr=gv('p_tr',P.tr); P.inv.cdbPct=gv('p_cdb',P.inv.cdbPct); P.inv.lciPct=gv('p_lci',P.inv.lciPct); P.inv.fiReal=gv('p_fi',P.inv.fiReal); P.inv.debReal=gv('p_deb',P.inv.debReal); P.inv.outro=gv('p_outro',P.inv.outro);
+  { const e=document.getElementById('p_rv'); if(e)P.inv.rvReal=e.value===''?null:+e.value; } P.finA=gv('p_fa',P.finA); P.finB=gv('p_fb',P.finB);
   if(S.invTipo!=='outro'){ const t=invTipos(S.selic).find(t=>t.k===S.invTipo); if(t)P.invest=+t.liq.toFixed(2); } else P.invest=P.inv.outro;
   saveS(); saveP(); render(aoVivo?'parcial':'total');
   if(!aoVivo)window.scrollTo({top:document.getElementById('sec5')?.offsetTop-20||0,behavior:'smooth'});
 }
 function usar(t){ S.taxa=t; saveS(); render(); }
-function usarInv(k){ S.invTipo=k; const t=invTipos(S.selic).find(t=>t.k===k); if(t)P.invest=+t.liq.toFixed(2); saveS(); saveP(); render(); }
+function usarInv(k){ S.invTipo=k;
+  const t=invTipos(S.selic).find(function(x){return x.k===k;});
+  if(t&&t.liq!=null)P.invest=+t.liq.toFixed(2);
+  saveS(); saveP(); render(); }
 function calcCons(){ const g=id=>+document.getElementById(id).value||0; P.cons={adm:g('k_adm'),fr:g('k_fr'),meses:g('k_m')||200,lance:g('k_l')}; saveP(); render(); }
 function limpar(){ S=Object.assign({},S0); saveS(); render(); }
 function addBanco(){ const g=id=>document.getElementById(id).value; if(!g('b_n')||!(+g('b_t')>0))return;

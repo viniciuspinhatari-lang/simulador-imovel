@@ -1,4 +1,4 @@
-# Simulador de financiamento imobiliário
+# Simulador Imóvel com Investimentos
 
 Página única, sem dependências de build. Todo o código está em `index.html`
 (Google Fonts é a única coisa carregada de fora). Os dados ficam salvos no
