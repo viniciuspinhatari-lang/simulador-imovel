@@ -554,8 +554,41 @@ function port(pv,anos,taxa,nova,mesIni){
   return {sd,j0:jr(taxa),j1:jr(nova)}; }
 
 /* ============ RENDER ============ */
+/* A pagina nunca aparece pela metade.
+
+   Antes, um estado impossivel guardado no navegador (entrada maior que o
+   valor do imovel, renda zerada, valor zerado) fazia o render parar na
+   checagem e mostrar so o formulario: 6 secoes em vez de 16. Quem tinha
+   digitado um numero pela metade ficava preso nisso em toda visita, e nao
+   tinha como saber que o resto ainda existia.
+
+   Agora o estado e consertado antes de desenhar, e cada conserto e
+   declarado em cima, com o valor velho, o novo e o porque. Nenhum numero
+   entra escondido: o que vem de padrao e dito como padrao e fica editavel. */
+function sanar(){
+  const a=[];
+  if(!(S.valor>0)){ S.valor=S0.valor;
+    a.push('O <b>valor do imóvel</b> estava zerado. Coloquei o padrão de ' + fk(S0.valor) + ' só para a página ter o que calcular — <b>troque pelo seu</b> no campo da seção 3.'); }
+  const rendaT = (+S.renda||0) + (S.comp||[]).reduce((x,y)=>x+(+y||0),0);
+  if(!(rendaT>0)){ S.renda=S0.renda;
+    a.push('A <b>renda</b> estava zerada. Coloquei o padrão de ' + fk(S0.renda) + ' — <b>troque pela sua</b> na seção 2, porque é ela que decide quanto da sua renda a parcela come.'); }
+  if(!(S.caixa>0)){ S.caixa=S0.caixa;
+    a.push('O campo <b>você tem guardado</b> estava zerado. Coloquei o padrão de ' + fk(S0.caixa) + '.'); }
+  const perfil = P.perfis[S.perfil]||P.perfis.clt;
+  const fgtsOk = perfil.fgts && S.fgts;
+  const total = () => (+S.entrada||0) + (fgtsOk?(+S.fgtsEnt||0):0);
+  if(S.entrada > S.caixa){ const velho=S.entrada; S.entrada=Math.round(S.caixa);
+    a.push('A <b>entrada</b> era ' + fk(velho) + ', maior do que os ' + fk(S.caixa) + ' que você tem guardado. Baixei para ' + fk(S.entrada) + '.'); }
+  if(total() >= S.valor){ const velho=S.entrada;
+    S.fgtsEnt=0; S.entrada=Math.max(0, Math.min(Math.round(S.caixa), Math.round(entradaMinima(S.valor))));
+    a.push('A <b>entrada</b> era ' + fk(velho) + ', igual ou maior que o imóvel de ' + fk(S.valor) + ' — não sobrava nada para financiar. Coloquei a entrada mínima, ' + fk(S.entrada) + ' (' + fp(100-ltvMax(),0) + '% do imóvel).'); }
+  if(a.length) saveS();
+  return a;
+}
+
 function render(modo){
   const SO_RES = modo==='parcial';
+  const ajustes = sanar();
   const perfil=P.perfis[S.perfil]||P.perfis.clt;
   const rendaTot=(+S.renda||0)+(S.comp||[]).reduce((a,b)=>a+(+b||0),0);
   const fgtsOk=perfil.fgts&&S.fgts;
@@ -572,6 +605,9 @@ function render(modo){
   const ok=probs.length===0;
   let html='';
   /* --- 1. perfil --- */
+  if(ajustes.length) html+='<div class="note warn"><b>Ajustei '+(ajustes.length>1?'estes campos':'este campo')+' para a página poder calcular:</b>'
+    +'<ul style="margin:8px 0 0;padding-left:20px;line-height:1.7">'+ajustes.map(t=>'<li>'+t+'</li>').join('')+'</ul>'
+    +'<p style="margin:10px 0 0">Foi o que ficou guardado neste navegador de alguma digitação anterior. <b>Tudo continua editável</b> — troque pelos seus números e a página inteira recalcula.</p></div>';
   html+='<div class="aoVivo"><span class="pulso"></span><div><b>Tudo nesta página recalcula sozinho.</b> Mudou um campo, mudaram na hora as 13 seções abaixo: parcelas, checagem das regras, recomendação, gráficos, portabilidade e consórcio. <b>Não existe "salvar"</b> — o que você digita fica guardado neste navegador e volta quando você abrir de novo. O botão <i>Calcular</i> serve só para rolar até o resultado.</div></div>'
    +(function(){ const anos=35, m=Math.pow(1+P.infl/100,anos), ex=1000;
       return '<details class="secD" style="margin:0 0 16px"><summary><h2 style="border:0;padding:0;margin:0">Antes de tudo: o que é "nominal" e o que é "em R$ de hoje"</h2>'
@@ -791,9 +827,11 @@ function render(modo){
    +'</tbody></table></div>'
    +'<div class="note warn"><b>A confusão que isso evita.</b> Alvo de compra é o que você exige <i>na hora de comprar um papel específico</i>. Premissa de projeção é o que você espera ganhar <i>na média de tudo, por décadas, reinvestindo ao que o mercado pagar naquele dia</i>. A segunda é sempre menor que a primeira — e tem de ser, senão a conta mente a seu favor. <b>Por isso a projeção desta página usa '+fp(P.longoReal,2)+'%, e não 11%.</b></div>'
    +'<div class="note lj"><b>Como ler.</b> Verde = rende mais que a sua taxa de financiamento ('+fp(S.taxa,2)+'%): financiar mais e investir a sobra ganha. Vermelho = perde: cada real financiado custa mais do que rende. <b>Poupança, Tesouro Selic, CDB e LCI acompanham a Selic</b> — quando ela cai, caem juntos. <b>FI-Infra e debênture incentivada são IPCA + taxa real</b>: não seguem a Selic, por isso a taxa real deles é campo editável, não fórmula.</div>';
-  if(!ok){ html+='<div class="note stop"><b>Falta ajustar '+(probs.length>1?'estes campos':'este campo')+' para eu calcular o resto:</b><ul style="margin:8px 0 0;padding-left:20px;line-height:1.7">'
-    +probs.map(t=>'<li>'+t+'</li>').join('')+'</ul><p style="margin:10px 0 0">O restante da página (parcelas, curva de entrada, portabilidade, bancos, cidade, seguros e consórcio) aparece assim que isso for resolvido — nada foi perdido.</p></div>';
-    fechar(SO_RES?null:FORM,html); bind(SO_RES); return; }
+  /* Rede de seguranca: sanar() ja consertou o que era impossivel, entao aqui
+     nao deveria sobrar nada. Se sobrar, o aviso aparece e a pagina CONTINUA —
+     nunca mais o formulario sozinho. */
+  if(!ok){ html+='<div class="note stop"><b>Confira '+(probs.length>1?'estes campos':'este campo')+':</b><ul style="margin:8px 0 0;padding-left:20px;line-height:1.7">'
+    +probs.map(t=>'<li>'+t+'</li>').join('')+'</ul><p style="margin:10px 0 0">As contas abaixo continuam na tela, calculadas com o que está preenchido.</p></div>'; }
   /* ===== PERFIL DE INVESTIDOR — imovel e investimento andam juntos ===== */
   (function(){
     const A=P.alocs, CL=P.classes;
