@@ -1,4 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.dicaMin{display:block;margin-top:4px;font-size:11.5px;color:var(--muted,#6b6b6b);line-height:1.35}
+</style></head><body>
 <title>Simulador Imóvel com Investimentos</title>
 <meta name="description" content="Financiamento imobiliário e investimentos na mesma conta: entrada, prazo, taxa, perfil de investidor e projeção de renda — em valor nominal e em dinheiro de hoje">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNDYzNEEiLz48cGF0aCBkPSJNMzIgMTMgTDU1IDM0IGgtNiB2MTcgSDE1IFYzNCBIOSBaIiBmaWxsPSIjRjdGNEYxIi8+PHJlY3QgeD0iMjgiIHk9IjM4IiB3aWR0aD0iOSIgaGVpZ2h0PSIxMyIgcng9IjEiIGZpbGw9IiNEOTc3NTciLz48L3N2Zz4=">
@@ -302,6 +303,21 @@ const fp=(v,d=2)=>(+v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFr
 const nfMil=v=>(v===''||v==null||isNaN(v))?'':Math.round(v).toLocaleString('pt-BR');
 const parseMil=t=>{ const d=String(t==null?'':t).replace(/[^\d]/g,''); return d===''?0:+d; };
 /* campo de dinheiro: texto com separador de milhar, teclado numérico no celular */
+/* Entrada minima colada no campo, e nao so la embaixo no resultado: quem
+   digita o valor do imovel quer saber na hora quanto precisa ter. O limite
+   vem do sistema escolhido — SAC financia ate 80%, Price ate 70%. */
+function textoEntMin(valor){
+  const v = valor==null ? S.valor : valor;
+  return 'mínimo R$ ' + nfMil(Math.round(entradaMinima(v))) + ' — ' + fp(100-ltvMax(),0) + '% do imóvel, porque pelo ' + (S.sistema==='price'?'Price':'SAC') + ' o banco financia até ' + fp(ltvMax(),0) + '%';
+}
+function atualizarEntMin(){
+  const dica = document.getElementById('ent-min');
+  const cv = document.getElementById('valor');
+  if(!dica || !cv) return;
+  const v = parseMil(cv.value);
+  dica.textContent = textoEntMin(v);
+  return v;
+}
 function campoR$(id,val,extra){ return '<div class="moeda"><span>R$</span><input id="'+id+'" type="text" inputmode="numeric" autocomplete="off" data-moeda="1" value="'+nfMil(val)+'"'+(extra||'')+'></div>'; }
 /* campo de porcentagem: aceita vírgula, mostra sufixo */
 function campoPct(id,val,step,extra){ return '<div class="moeda pct"><input id="'+id+'" type="text" inputmode="decimal" autocomplete="off" data-pct="1" data-step="'+(step||0.1)+'" value="'+String(val).replace('.',',')+'"'+(extra||'')+'><span>%</span></div>'; }
@@ -591,7 +607,8 @@ function render(modo){
   html+='<h2>3. Imóvel, entrada e o que sobra</h2><div class="card"><div class="grid">'
    +'<div><label>Valor do imóvel</label>'+campoR$('valor',S.valor)+'</div>'
    +'<div><label>Você tem guardado</label>'+campoR$('caixa',S.caixa)+'</div>'
-   +'<div><label>Entrada em dinheiro</label>'+campoR$('entrada',S.entrada)+'</div>'
+   +'<div><label>Entrada em dinheiro</label>'+campoR$('entrada',S.entrada)
+     +'<small id="ent-min" class="dicaMin">'+textoEntMin()+'</small></div>'
    +'<div><label>FGTS usado na entrada</label>'+campoR$('fgtsEnt',S.fgtsEnt,(fgtsOk?'':' disabled'))+'</div>'
    +'<div><label>Taxa do financiamento (% a.a.)</label>'+campoPct('taxa',S.taxa,0.01)+'</div>'
    +'<div><label>Taxa p/ testar portabilidade</label>'+campoPct('taxaPort',S.taxaPort,0.1)+'</div>'
@@ -1564,6 +1581,7 @@ function fechar(form,html){
   try{ if(localStorage.getItem('v2p-imovel-modo')==='tudo')modoTudo(true); }catch(e){}
   if(form!==null){ dobrarSecoes(document.getElementById('frm')); condensar(document.getElementById('frm')); }
   travarRodaNosNumeros(app);
+  atualizarEntMin();
   ligarTip();
   ligarBarra();
   atualizarDica();
@@ -1654,8 +1672,15 @@ function dobrarSecoes(root){
         d.open = (d.id&&abertas[d.id]!==undefined) ? !!abertas[d.id] : !resumo;
         d.addEventListener('toggle',function(){
           if(d.id)gravarAberta(d.id,d.open);
-          if(d.open)d.scrollIntoView({block:'nearest'});
           atualizarContador();
+        });
+        /* A rolagem so acontece quando E O USUARIO que abre a secao.
+           Estava no evento 'toggle', que tambem dispara quando a pagina
+           reabre as secoes sozinha a cada recalculo — e ai a ultima secao
+           restaurada arrastava a tela para o fim do documento no meio da
+           digitacao. */
+        sm.addEventListener('click',function(){
+          setTimeout(function(){ if(d.open)d.scrollIntoView({block:'nearest'}); },0);
         });
         i=j; continue;
       }
@@ -1748,6 +1773,12 @@ function ligarCampos(){
       if(moeda){ const d=el.value.replace(/[^\d]/g,''); const fim=el.selectionStart>=el.value.length;
         const novo=d===''?'':(+d).toLocaleString('pt-BR');
         if(novo!==el.value){ el.value=novo; if(fim)el.setSelectionRange(novo.length,novo.length); } }
+      const v = atualizarEntMin();
+      /* Mexeu no valor do imovel: a entrada acompanha, se tiver ficado abaixo
+         do minimo. A entrada digitada a mao nao se toca. */
+      if(el.id==='valor'){ const ent=document.getElementById('entrada');
+        if(ent && v>0){ const min=Math.round(entradaMinima(v));
+          if(parseMil(ent.value) < min) ent.value=nfMil(min); } }
       clearTimeout(LIVE); LIVE=setTimeout(()=>calc(true),400);
     };
     el.onblur=()=>{
