@@ -1524,6 +1524,14 @@ function render(modo){
    +'</div></details>';
   fechar(SO_RES?null:FORM,html); bind(SO_RES);
 }
+/* A roda do mouse sobre um campo numerico em foco mudava o numero em vez
+   de rolar a pagina. Aqui a roda tira o foco e a pagina volta a rolar. */
+function travarRodaNosNumeros(raiz){
+  if(!raiz)return;
+  raiz.querySelectorAll('input[type=number]').forEach(function(inp){
+    inp.addEventListener('wheel',function(){ if(document.activeElement===inp)inp.blur(); },{passive:true});
+  });
+}
 function fechar(form,html){
   /* índice automático a partir dos títulos */
   let nsec=0; const tit=[];
@@ -1555,6 +1563,7 @@ function fechar(form,html){
   condensar(document.getElementById('res'));
   try{ if(localStorage.getItem('v2p-imovel-modo')==='tudo')modoTudo(true); }catch(e){}
   if(form!==null){ dobrarSecoes(document.getElementById('frm')); condensar(document.getElementById('frm')); }
+  travarRodaNosNumeros(app);
   ligarTip();
   ligarBarra();
   atualizarDica();
